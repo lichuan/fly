@@ -1,0 +1,3 @@
+Import("env")
+fly = env.Library("fly", Glob("*.cpp") + Glob("*/*.cpp"))
+Return("fly")
