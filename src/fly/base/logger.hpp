@@ -63,7 +63,7 @@ private:
 }
 
 #define LOG_DEBUG(format, ...) \
-    char _format_[2048]; \
+    char _format_[1024]; \
     struct timeval _tv_; \
     gettimeofday(&_tv_, NULL); \
     struct tm _tm_; \
@@ -73,7 +73,7 @@ private:
     fly::base::Logger::instance()->log_impl(fly::base::DEBUG, 1900 + _tm_.tm_year, 1 + _tm_.tm_mon, _tm_.tm_mday, _format_, ##__VA_ARGS__)
 
 #define LOG_INFO(format, ...) \
-    char _format_[2048]; \
+    char _format_[1024]; \
     struct timeval _tv_; \
     gettimeofday(&_tv_, NULL); \
     struct tm _tm_; \
@@ -83,7 +83,7 @@ private:
     fly::base::Logger::instance()->log_impl(fly::base::INFO, 1900 + _tm_.tm_year, 1 + _tm_.tm_mon, _tm_.tm_mday, _format_, ##__VA_ARGS__)
 
 #define LOG_WARN(format, ...) \
-    char _format_[2048]; \
+    char _format_[1024]; \
     struct timeval _tv_; \
     gettimeofday(&_tv_, NULL); \
     struct tm _tm_; \
@@ -93,7 +93,7 @@ private:
     fly::base::Logger::instance()->log_impl(fly::base::WARN, 1900 + _tm_.tm_year, 1 + _tm_.tm_mon, _tm_.tm_mday, _format_, ##__VA_ARGS__)
 
 #define LOG_ERROR(format, ...) \
-    char _format_[2048]; \
+    char _format_[1024]; \
     struct timeval _tv_; \
     gettimeofday(&_tv_, NULL); \
     struct tm _tm_; \
@@ -103,7 +103,7 @@ private:
     fly::base::Logger::instance()->log_impl(fly::base::ERROR, 1900 + _tm_.tm_year, 1 + _tm_.tm_mon, _tm_.tm_mday, _format_, ##__VA_ARGS__)
 
 #define LOG_FATAL(format, ...) \
-    char _format_[2048]; \
+    char _format_[1024]; \
     struct timeval _tv_; \
     gettimeofday(&_tv_, NULL); \
     struct tm _tm_; \
