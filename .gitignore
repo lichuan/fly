@@ -2,5 +2,4 @@
 build
 *.o
 *.obj
-3rd-library
 cscope.*

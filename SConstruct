@@ -8,8 +8,9 @@ def get_static_library_name(node):
 def get_shared_library_name(node):
     return os.path.basename(str(node)[:-2])[3:-3]
 
-env = Environment(CCFLAGS='-g -O2 -Wall -Werror -std=c++11', CPPPATH=[
-        "#src"
+env = Environment(CCFLAGS='-g -O2 -Wall -std=c++11', CPPPATH=[
+        "#src",
+        "#3rd-library/include"
         ])
 
 Export("env")

@@ -15,23 +15,39 @@
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-10 13:34:21                                        *
+ *   @date: 2015-06-11 08:24:10                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <iostream>
-#include "fly/base/logger.hpp"
-#include <unistd.h>
-using namespace std;
+#ifndef FLY__BASE__SINGLETON
+#define FLY__BASE__SINGLETON
 
-int main()
+namespace fly {
+namespace base {
+
+template<typename T>
+class Singleton
 {
-    fly::base::Logger::instance()->init(fly::base::DEBUG, "myapp", "./log/");
+public:
+    static T* instance();
 
-    for(int32 i = 0; i < 10000; ++i)
-    {
-        LOG_INFO("testserver msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg %s %d", "msg str", 1112222);
-    }
+protected:
+    Singleton() = default;
     
-    cout << "output end" << endl;
+private:
+    static T m_instance;
+};
+
+template<typename T>
+T Singleton<T>::m_instance;
+
+template<typename T>
+T* Singleton<T>::instance()
+{
+    return &m_instance;
 }
+
+}
+}
+
+#endif

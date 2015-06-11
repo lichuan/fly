@@ -36,15 +36,39 @@ typedef uint64_t uint64;
 namespace fly {
 namespace base {
 
+template<typename T>
+class Guard_Value
+{
+public:
+    Guard_Value(T &value, T in_value, T out_value) : m_value(value)
+    {
+        m_value = in_value;
+        m_out_value = out_value;
+    }
+    
+    ~Guard_Value()
+    {
+        m_value = m_out_value;
+    }
+
+    T &m_value;
+    T m_out_value;
+};
+
 class ID_Allocator
 {
 public:
-    ID_Allocator() = default;
     uint64 new_id();
-    
+
 private:
     uint64 m_id = 1;
 };
+
+uint32 random_between(uint32 min, uint32 max);
+uint32 random_32();
+uint64 random_64();
+bool rate_by_percent(uint32 rate);    
+bool rate_by_thousand(uint32 rate);
 
 }
 }
