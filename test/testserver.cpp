@@ -28,9 +28,29 @@ int main()
 {
     fly::base::Logger::instance()->init(fly::base::DEBUG, "myapp", "./log/");
 
-    for(int32 i = 0; i < 10000; ++i)
+    for(int32 i = 0; i < 20000; ++i)
+    {
+        LOG_DEBUG("testserver msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg %s %d", "msg str", 1112222);
+    }
+    
+    for(int32 i = 0; i < 20000; ++i)
     {
         LOG_INFO("testserver msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg %s %d", "msg str", 1112222);
+    }
+
+    for(int32 i = 0; i < 20000; ++i)
+    {
+        LOG_WARN("testserver msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg %s %d", "msg str", 1112222);
+    }
+
+    for(int32 i = 0; i < 20000; ++i)
+    {
+        LOG_ERROR("testserver msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg %s %d", "msg str", 1112222);
+    }
+
+    for(int32 i = 0; i < 20000; ++i)
+    {
+        LOG_FATAL("testserver msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg %s %d", "msg str", 1112222);
     }
     
     cout << "output end" << endl;
