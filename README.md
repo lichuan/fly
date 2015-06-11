@@ -1,4 +1,4 @@
-##fly
+##FLY
 
   fly is an awesome c++ network library.
 
