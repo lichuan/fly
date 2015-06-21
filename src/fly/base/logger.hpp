@@ -23,6 +23,7 @@
 #define FLY__BASE__LOGGER
 
 #include <cstdio>
+#include <atomic>
 #include <string>
 #include <mutex>
 #include <sys/time.h>
@@ -32,30 +33,30 @@
 namespace fly {
 namespace base {
 
-enum LEVEL
+enum LOG_LEVEL
 {
     DEBUG,
     INFO,
     WARN,
     ERROR,
-    FATAL,
-    MAX_LEVEL
+    FATAL
 };
 
 class Logger : public Singleton<Logger>
 {
 public:
-    void init(LEVEL level, const std::string &app, const std::string &path);
-    void log_impl(LEVEL level, uint32 year, uint32 month, uint32 day, const char *format, ...);
-    
+    void init(LOG_LEVEL level, const std::string &app, const std::string &path);
+    void _log(LOG_LEVEL level, uint32 year, uint32 month, uint32 day, const char *format, ...);
+
 private:
-    LEVEL m_level;
+    LOG_LEVEL m_level;
     std::string m_file_name;
     std::string m_file_full_name;
     FILE *m_file;
-    volatile uint32 m_year;
-    volatile uint32 m_month;
-    volatile uint32 m_day;
+    std::atomic<uint32> m_year;
+    std::atomic<uint32> m_month;
+    std::atomic<uint32> m_day;
+    std::atomic<uint32> m_enter_num {0};
     std::mutex m_mutex;
 };
 
@@ -63,53 +64,53 @@ private:
 }
 
 #define LOG_DEBUG(format, ...) \
-    char _format_[1024]; \
-    struct timeval _tv_; \
-    gettimeofday(&_tv_, NULL); \
-    struct tm _tm_; \
-    localtime_r(&_tv_.tv_sec, &_tm_); \
-    sprintf(_format_, "%d-%02d-%02d %02d:%02d:%02d.%06ld |debug| %s:%d {%s}\n", 1900 + _tm_.tm_year, 1 + _tm_.tm_mon, _tm_.tm_mday, _tm_.tm_hour, \
-            _tm_.tm_min, _tm_.tm_sec, _tv_.tv_usec, __FILE__, __LINE__, format); \
-    fly::base::Logger::instance()->log_impl(fly::base::DEBUG, 1900 + _tm_.tm_year, 1 + _tm_.tm_mon, _tm_.tm_mday, _format_, ##__VA_ARGS__)
+    char _format[1024]; \
+    struct timeval _tv; \
+    gettimeofday(&_tv, NULL); \
+    struct tm _tm; \
+    localtime_r(&_tv.tv_sec, &_tm); \
+    sprintf(_format, "%d-%02d-%02d %02d:%02d:%02d.%06ld |debug| %s:%d {%s}\n", 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, \
+            _tm.tm_min, _tm.tm_sec, _tv.tv_usec, __FILE__, __LINE__, format); \
+    fly::base::Logger::instance()->_log(fly::base::DEBUG, 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _format, ##__VA_ARGS__)
 
 #define LOG_INFO(format, ...) \
-    char _format_[1024]; \
-    struct timeval _tv_; \
-    gettimeofday(&_tv_, NULL); \
-    struct tm _tm_; \
-    localtime_r(&_tv_.tv_sec, &_tm_); \
-    sprintf(_format_, "%d-%02d-%02d %02d:%02d:%02d.%06ld |info| %s:%d {%s}\n", 1900 + _tm_.tm_year, 1 + _tm_.tm_mon, _tm_.tm_mday, _tm_.tm_hour, \
-            _tm_.tm_min, _tm_.tm_sec, _tv_.tv_usec, __FILE__, __LINE__, format); \
-    fly::base::Logger::instance()->log_impl(fly::base::INFO, 1900 + _tm_.tm_year, 1 + _tm_.tm_mon, _tm_.tm_mday, _format_, ##__VA_ARGS__)
+    char _format[1024]; \
+    struct timeval _tv; \
+    gettimeofday(&_tv, NULL); \
+    struct tm _tm; \
+    localtime_r(&_tv.tv_sec, &_tm); \
+    sprintf(_format, "%d-%02d-%02d %02d:%02d:%02d.%06ld |info| %s:%d {%s}\n", 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, \
+            _tm.tm_min, _tm.tm_sec, _tv.tv_usec, __FILE__, __LINE__, format); \
+    fly::base::Logger::instance()->_log(fly::base::INFO, 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _format, ##__VA_ARGS__)
 
 #define LOG_WARN(format, ...) \
-    char _format_[1024]; \
-    struct timeval _tv_; \
-    gettimeofday(&_tv_, NULL); \
-    struct tm _tm_; \
-    localtime_r(&_tv_.tv_sec, &_tm_); \
-    sprintf(_format_, "%d-%02d-%02d %02d:%02d:%02d.%06ld |warn| %s:%d {%s}\n", 1900 + _tm_.tm_year, 1 + _tm_.tm_mon, _tm_.tm_mday, _tm_.tm_hour, \
-            _tm_.tm_min, _tm_.tm_sec, _tv_.tv_usec, __FILE__, __LINE__, format); \
-    fly::base::Logger::instance()->log_impl(fly::base::WARN, 1900 + _tm_.tm_year, 1 + _tm_.tm_mon, _tm_.tm_mday, _format_, ##__VA_ARGS__)
+    char _format[1024]; \
+    struct timeval _tv; \
+    gettimeofday(&_tv, NULL); \
+    struct tm _tm; \
+    localtime_r(&_tv.tv_sec, &_tm); \
+    sprintf(_format, "%d-%02d-%02d %02d:%02d:%02d.%06ld |warn| %s:%d {%s}\n", 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, \
+            _tm.tm_min, _tm.tm_sec, _tv.tv_usec, __FILE__, __LINE__, format); \
+    fly::base::Logger::instance()->_log(fly::base::WARN, 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _format, ##__VA_ARGS__)
 
 #define LOG_ERROR(format, ...) \
-    char _format_[1024]; \
-    struct timeval _tv_; \
-    gettimeofday(&_tv_, NULL); \
-    struct tm _tm_; \
-    localtime_r(&_tv_.tv_sec, &_tm_); \
-    sprintf(_format_, "%d-%02d-%02d %02d:%02d:%02d.%06ld |error| %s:%d {%s}\n", 1900 + _tm_.tm_year, 1 + _tm_.tm_mon, _tm_.tm_mday, _tm_.tm_hour, \
-            _tm_.tm_min, _tm_.tm_sec, _tv_.tv_usec, __FILE__, __LINE__, format); \
-    fly::base::Logger::instance()->log_impl(fly::base::ERROR, 1900 + _tm_.tm_year, 1 + _tm_.tm_mon, _tm_.tm_mday, _format_, ##__VA_ARGS__)
+    char _format[1024]; \
+    struct timeval _tv; \
+    gettimeofday(&_tv, NULL); \
+    struct tm _tm; \
+    localtime_r(&_tv.tv_sec, &_tm); \
+    sprintf(_format, "%d-%02d-%02d %02d:%02d:%02d.%06ld |error| %s:%d {%s}\n", 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, \
+            _tm.tm_min, _tm.tm_sec, _tv.tv_usec, __FILE__, __LINE__, format); \
+    fly::base::Logger::instance()->_log(fly::base::ERROR, 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _format, ##__VA_ARGS__)
 
 #define LOG_FATAL(format, ...) \
-    char _format_[1024]; \
-    struct timeval _tv_; \
-    gettimeofday(&_tv_, NULL); \
-    struct tm _tm_; \
-    localtime_r(&_tv_.tv_sec, &_tm_); \
-    sprintf(_format_, "%d-%02d-%02d %02d:%02d:%02d.%06ld |fatal| %s:%d {%s}\n", 1900 + _tm_.tm_year, 1 + _tm_.tm_mon, _tm_.tm_mday, _tm_.tm_hour, \
-            _tm_.tm_min, _tm_.tm_sec, _tv_.tv_usec, __FILE__, __LINE__, format); \
-    fly::base::Logger::instance()->log_impl(fly::base::FATAL, 1900 + _tm_.tm_year, 1 + _tm_.tm_mon, _tm_.tm_mday, _format_, ##__VA_ARGS__)
+    char _format[1024]; \
+    struct timeval _tv; \
+    gettimeofday(&_tv, NULL); \
+    struct tm _tm; \
+    localtime_r(&_tv.tv_sec, &_tm); \
+    sprintf(_format, "%d-%02d-%02d %02d:%02d:%02d.%06ld |fatal| %s:%d {%s}\n", 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, \
+            _tm.tm_min, _tm.tm_sec, _tv.tv_usec, __FILE__, __LINE__, format); \
+    fly::base::Logger::instance()->_log(fly::base::FATAL, 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _format, ##__VA_ARGS__)
 
 #endif

@@ -33,18 +33,14 @@ public:
 
 protected:
     Singleton() = default;
-    
-private:
-    static T m_instance;
 };
-
-template<typename T>
-T Singleton<T>::m_instance;
 
 template<typename T>
 T* Singleton<T>::instance()
 {
-    return &m_instance;
+    static T instance;
+
+    return &instance;
 }
 
 }
