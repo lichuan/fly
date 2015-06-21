@@ -24,5 +24,5 @@ lib_path = [
 
 env.Replace(LIBS=libs, LIBPATH=lib_path)
 Export("env")
-testserver = SConscript("test/SConscript", variant_dir="build/testserver", duplicate=0)
-env.Install("build/bin", testserver)
+test = SConscript("test/SConscript", variant_dir="build/test", duplicate=0)
+env.Install("build/bin", test)
