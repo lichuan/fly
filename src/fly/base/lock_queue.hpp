@@ -29,7 +29,10 @@ namespace fly {
 namespace base {
 
 template<typename T>
-class Lock_Queue
+class Lock_Queue;
+
+template<typename T>
+class Lock_Queue<T*>
 {
 public:
     void push(T *element)

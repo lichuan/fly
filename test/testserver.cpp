@@ -20,38 +20,27 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <iostream>
-#include "fly/base/logger.hpp"
 #include <unistd.h>
+#include "fly/init.hpp"
+#include "fly/base/logger.hpp"
+#include "fly/base/block_queue.hpp"
+#include "fly/base/lock_queue.hpp"
+
 using namespace std;
 
 int main()
 {
+    //init library
+    fly::init();
+
+    //init logger
     fly::base::Logger::instance()->init(fly::base::DEBUG, "myapp", "./log/");
-
+    
+    //test logger
     for(int32 i = 0; i < 20000; ++i)
     {
-        LOG_DEBUG("testserver msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg %s %d", "msg str", 1112222);
+        LOG_INFO("this is a msg to logger, I am %s, 1024 * 1024 = %d", "lichuan", 1024 * 1024);
     }
     
-    for(int32 i = 0; i < 20000; ++i)
-    {
-        LOG_INFO("testserver msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg %s %d", "msg str", 1112222);
-    }
-
-    for(int32 i = 0; i < 20000; ++i)
-    {
-        LOG_WARN("testserver msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg %s %d", "msg str", 1112222);
-    }
-
-    for(int32 i = 0; i < 20000; ++i)
-    {
-        LOG_ERROR("testserver msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg %s %d", "msg str", 1112222);
-    }
-
-    for(int32 i = 0; i < 20000; ++i)
-    {
-        LOG_FATAL("testserver msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg this is a very long msg %s %d", "msg str", 1112222);
-    }
-    
-    cout << "output end" << endl;
+    cout << "test end" << endl;
 }
