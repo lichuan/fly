@@ -66,15 +66,8 @@ void Logger::init(LOG_LEVEL level, const std::string &app, const std::string &pa
     m_file = fopen(m_file_full_name.c_str(), "ab");
 }
 
-void Logger::_log(LOG_LEVEL level, uint32 year, uint32 month, uint32 day, const char *format, ...)
-{
-    if(level < m_level)
-    {
-        return;
-    }
-
-    m_enter_num.fetch_add(1, std::memory_order_relaxed);
-    
+void Logger::_log(uint32 year, uint32 month, uint32 day, const char *format, ...)
+{    
     if(year != m_year.load(std::memory_order_relaxed) || month != m_month.load(std::memory_order_relaxed)
        || day != m_day.load(std::memory_order_relaxed))
     {
