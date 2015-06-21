@@ -22,14 +22,26 @@
 #ifndef FLY__TASK__EXECUTOR
 #define FLY__TASK__EXECUTOR
 
+#include <thread>
+#include "fly/base/common.hpp"
+#include "fly/base/block_queue.hpp"
+#include "fly/task/task.hpp"
+
 namespace fly {
 namespace task {
 
 class Executor
 {
 public:
+    Executor();
     void run();
+    void start();
+    void stop();
+    void push_task(Task *task);
     
+private:
+    std::thread m_thread;
+    fly::base::Block_Queue<Task*> m_tasks;
 };
 
 }

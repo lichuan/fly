@@ -15,29 +15,44 @@
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-21 19:22:15                                        *
+ *   @date: 2015-06-21 18:45:20                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef FLY__TASK__SCHEDULER
-#define FLY__TASK__SCHEDULER
+#ifndef FLY__TASK__TASK
+#define FLY__TASK__TASK
 
-#include <vector>
-#include "fly/task/executor.hpp"
+#include "fly/base/common.hpp"
 
 namespace fly {
 namespace task {
 
-class Scheduler
+class Task
 {
 public:
-    Scheduler(uint32 num);
-    void schedule_task(Task *task);
-    void start();
-    void stop();
+    Task(uint64 seq);
+    virtual ~Task() = default;
+    virtual void run() = 0;
+    uint64 seq();
+    void set_executor_id(uint32 id);
+    
+protected:
+    uint32 m_executor_id;
     
 private:
-    std::vector<Executor*> m_executors;
+    uint64 m_seq;
+};
+
+class Loop_Task : public Task
+{
+public:
+    Loop_Task(uint64 seq);
+    virtual void run() override;
+    virtual void run_in_loop() = 0;
+    void stop();
+
+private:
+    bool m_running = true;
 };
 
 }

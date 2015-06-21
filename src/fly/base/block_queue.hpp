@@ -52,7 +52,7 @@ public:
     T* pop()
     {
         std::unique_lock<std::mutex> locker(m_mutex);
-        m_cond.wait(locker, [&]{!m_queue.empty();});
+        m_cond.wait(locker, [&]{return !m_queue.empty();});
         T* element = m_queue.front();
         m_queue.pop_front();
 

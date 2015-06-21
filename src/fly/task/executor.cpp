@@ -23,5 +23,36 @@
 
 namespace fly {
 namespace task {
+
+Executor::Executor()
+{
+}
+
+void Executor::run()
+{
+    while(true)
+    {
+        auto *task = m_tasks.pop();
+        task->run();
+        delete task;
+    }
+}
+
+void Executor::push_task(Task *task)
+{
+    m_tasks.push(task);
+}
+
+void Executor::start()
+{
+    std::thread tmp(std::bind(&Executor::run, this));
+    m_thread = std::move(tmp);
+}
+
+void Executor::stop()
+{
+    m_thread.join();
+}
+
 }
 }
