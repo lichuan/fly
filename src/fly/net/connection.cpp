@@ -15,42 +15,26 @@
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-10 13:33:47                                        *
+ *   @date: 2015-06-22 18:22:00                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "fly/task/executor.hpp"
+#include "fly/net/connection.hpp"
 
 namespace fly {
-namespace task {
+namespace net {
 
-Executor::Executor()
+Connection::~Connection()
 {
-}
-
-void Executor::run()
-{
-    while(auto *task = m_tasks.pop())
+    while(auto *message_block = m_recv_msg_queue.pop())
     {
-        task->run();
-        delete task;
+        delete message_block;
     }
-}
 
-void Executor::push_task(Task *task)
-{
-    m_tasks.push(task);
-}
-
-void Executor::start()
-{
-    std::thread tmp(std::bind(&Executor::run, this));
-    m_thread = std::move(tmp);
-}
-
-void Executor::stop()
-{
-    m_thread.join();
+    while(auto *message_block = m_send_msg_queue.pop())
+    {
+        delete message_block;
+    }
 }
 
 }

@@ -15,42 +15,43 @@
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-10 13:33:47                                        *
+ *   @date: 2015-06-22 17:35:57                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "fly/task/executor.hpp"
+#include "fly/net/message_block.hpp"
 
 namespace fly {
-namespace task {
+namespace net {
 
-Executor::Executor()
+Message_Block::Message_Block(uint32 size)
 {
+    m_data.resize(size + 1, 0);
 }
 
-void Executor::run()
+uint32 Message_Block::length()
 {
-    while(auto *task = m_tasks.pop())
-    {
-        task->run();
-        delete task;
-    }
+    return m_write_pos - m_read_pos;
 }
 
-void Executor::push_task(Task *task)
+char* Message_Block::read_ptr()
 {
-    m_tasks.push(task);
+    return &m_data[m_read_pos];
 }
 
-void Executor::start()
+void Message_Block::read_ptr(uint32 count)
 {
-    std::thread tmp(std::bind(&Executor::run, this));
-    m_thread = std::move(tmp);
+    m_read_pos += count;
 }
 
-void Executor::stop()
+char* Message_Block::write_ptr()
 {
-    m_thread.join();
+    return &m_data[m_write_pos];
+}
+
+void Message_Block::write_ptr(uint32 count)
+{
+    m_write_pos += count;
 }
 
 }

@@ -15,43 +15,34 @@
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-10 13:33:47                                        *
+ *   @date: 2015-06-22 17:03:35                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "fly/task/executor.hpp"
+#ifndef FLY__NET__ADDR
+#define FLY__NET__ADDR
+
+#include <string>
+#include "fly/base/common.hpp"
 
 namespace fly {
-namespace task {
+namespace net {
 
-Executor::Executor()
+struct Addr
 {
-}
+    std::string m_host;
+    uint16 m_port;
 
-void Executor::run()
-{
-    while(auto *task = m_tasks.pop())
+    Addr() = default;
+    
+    Addr(const std::string &host, uint16 port)
     {
-        task->run();
-        delete task;
+        m_host = host;
+        m_port = port;
     }
-}
-
-void Executor::push_task(Task *task)
-{
-    m_tasks.push(task);
-}
-
-void Executor::start()
-{
-    std::thread tmp(std::bind(&Executor::run, this));
-    m_thread = std::move(tmp);
-}
-
-void Executor::stop()
-{
-    m_thread.join();
-}
+};
 
 }
 }
+
+#endif

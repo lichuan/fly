@@ -15,43 +15,30 @@
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-10 13:33:47                                        *
+ *   @date: 2015-06-22 19:53:53                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "fly/task/executor.hpp"
+#ifndef FLY__NET__ACCEPTOR
+#define FLY__NET__ACCEPTOR
+
+#include "fly/net/connection.hpp"
 
 namespace fly {
-namespace task {
+namespace net {
 
-Executor::Executor()
+class Acceptor
 {
-}
-
-void Executor::run()
-{
-    while(auto *task = m_tasks.pop())
-    {
-        task->run();
-        delete task;
-    }
-}
-
-void Executor::push_task(Task *task)
-{
-    m_tasks.push(task);
-}
-
-void Executor::start()
-{
-    std::thread tmp(std::bind(&Executor::run, this));
-    m_thread = std::move(tmp);
-}
-
-void Executor::stop()
-{
-    m_thread.join();
-}
+public:
+    Acceptor(const Addr &addr, std::function<void(Connection*)> new_conn_cb);
+    void start();
+    
+private:
+    std::function<void(Connection*)> m_new_conn_cb;
+    Addr m_listen_addr;
+};
 
 }
 }
+
+#endif

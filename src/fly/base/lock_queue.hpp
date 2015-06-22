@@ -40,13 +40,7 @@ public:
         std::lock_guard<std::mutex> guard(m_mutex);
         m_queue.push_back(element);
     }
-
-    void push_front(T *element)
-    {
-        std::lock_guard<std::mutex> guard(m_mutex);
-        m_queue.push_front(element);
-    }
-
+    
     T* pop()
     {
         std::lock_guard<std::mutex> guard(m_mutex);

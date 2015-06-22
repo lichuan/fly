@@ -15,43 +15,32 @@
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-10 13:33:47                                        *
+ *   @date: 2015-06-22 17:15:25                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "fly/task/executor.hpp"
+#ifndef FLY__NET__CONNECTION
+#define FLY__NET__CONNECTION
+
+#include "fly/net/addr.hpp"
+#include "fly/net/message_queue.hpp"
 
 namespace fly {
-namespace task {
+namespace net {
 
-Executor::Executor()
+class Connection
 {
-}
-
-void Executor::run()
-{
-    while(auto *task = m_tasks.pop())
-    {
-        task->run();
-        delete task;
-    }
-}
-
-void Executor::push_task(Task *task)
-{
-    m_tasks.push(task);
-}
-
-void Executor::start()
-{
-    std::thread tmp(std::bind(&Executor::run, this));
-    m_thread = std::move(tmp);
-}
-
-void Executor::stop()
-{
-    m_thread.join();
-}
+public:
+    Connection(const Addr &addr);
+    ~Connection();
+    
+private:    
+    Addr m_peer_addr;
+    Message_Queue m_recv_msg_queue;
+    Message_Queue m_send_msg_queue;
+};
 
 }
 }
+
+#endif

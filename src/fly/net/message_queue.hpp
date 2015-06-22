@@ -15,43 +15,34 @@
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-10 13:33:47                                        *
+ *   @date: 2015-06-22 17:48:41                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "fly/task/executor.hpp"
+#ifndef FLY__NET__MESSAGE_QUEUE
+#define FLY__NET__MESSAGE_QUEUE
+
+#include <mutex>
+#include <deque>
+#include "fly/net/message_block.hpp"
 
 namespace fly {
-namespace task {
+namespace net {
 
-Executor::Executor()
+class Message_Queue
 {
-}
-
-void Executor::run()
-{
-    while(auto *task = m_tasks.pop())
-    {
-        task->run();
-        delete task;
-    }
-}
-
-void Executor::push_task(Task *task)
-{
-    m_tasks.push(task);
-}
-
-void Executor::start()
-{
-    std::thread tmp(std::bind(&Executor::run, this));
-    m_thread = std::move(tmp);
-}
-
-void Executor::stop()
-{
-    m_thread.join();
-}
+public:
+    void push(Message_Block *message_block);    
+    void push_front(Message_Block *message_block);
+    Message_Block* pop();
+    
+private:
+    std::deque<Message_Block*> m_queue;
+    std::mutex m_mutex;
+    uint32 m_length = 0;
+};
 
 }
 }
+
+#endif
