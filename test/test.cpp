@@ -52,11 +52,8 @@ int main()
     fly::base::Logger::instance()->init(fly::base::DEBUG, "myapp", "./log/");
     
     //test logger
-    for(int32 i = 0; i < 100; ++i)
-    {
-        LOG_INFO("this is a msg to logger, I am %s, 1024 * 1024 = %d", "lichuan", 1024 * 1024);
-    }
-
+    LOG_INFO("this is a msg to logger, I am %s, 1024 * 1024 = %d", "lichuan", 1024 * 1024);
+    
     //test task
     fly::task::Scheduler scheduler(1);
     scheduler.schedule_task(new Print_Task(0));

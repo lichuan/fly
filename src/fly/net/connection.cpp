@@ -37,5 +37,11 @@ Connection::~Connection()
     }
 }
 
+Connection::Connection(int32 fd, const Addr &peer_addr)
+{
+    m_fd = fd;
+    m_peer_addr = peer_addr;
+}
+
 }
 }

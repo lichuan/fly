@@ -15,30 +15,27 @@
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-22 17:15:25                                        *
+ *   @date: 2015-06-23 16:59:06                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef FLY__NET__CONNECTION
-#define FLY__NET__CONNECTION
+#ifndef FLY__BASE__REF
+#define FLY__BASE__REF
 
-#include "fly/net/addr.hpp"
-#include "fly/net/message_queue.hpp"
+#include <atomic>
+#include "fly/base/common.hpp"
 
 namespace fly {
-namespace net {
+namespace base {
 
-class Connection
+class Ref
 {
 public:
-    Connection(int32 fd, const Addr &peer_addr);
-    ~Connection();
-    
-private:    
-    Addr m_peer_addr;
-    int32 m_fd;
-    Message_Queue m_recv_msg_queue;
-    Message_Queue m_send_msg_queue;
+    void retain();
+    void release();
+
+private:
+    std::atomic<uint32> m_ref_count {1};
 };
 
 }
