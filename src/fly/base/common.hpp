@@ -9,7 +9,7 @@
  *                   |/         (_______/  \_/                         *
  *                                                                     *
  *                                                                     *
- *     fly is an awesome c++ network library.                          *
+ *     fly is an awesome c++11 network library.                        *
  *                                                                     *
  *   @author: lichuan                                                  *
  *   @qq: 308831759                                                    *
@@ -20,6 +20,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <cstdint>
+#include <atomic>
 
 #ifndef FLY__BASE__COMMON
 #define FLY__BASE__COMMON
@@ -61,7 +62,7 @@ public:
     uint64 new_id();
 
 private:
-    uint64 m_id = 1;
+    std::atomic<uint64> m_id {1};
 };
 
 uint32 random_between(uint32 min, uint32 max);

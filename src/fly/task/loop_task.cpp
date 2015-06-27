@@ -9,49 +9,36 @@
  *                   |/         (_______/  \_/                         *
  *                                                                     *
  *                                                                     *
- *     fly is an awesome c++ network library.                          *
+ *     fly is an awesome c++11 network library.                        *
  *                                                                     *
  *   @author: lichuan                                                  *
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-22 18:04:48                                        *
+ *   @date: 2015-06-24 20:35:12                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "fly/net/message_queue.hpp"
+#include "fly/task/loop_task.hpp"
 
 namespace fly {
-namespace net {
+namespace task {
 
-void Message_Queue::push(Message_Block *message_block)
+Loop_Task::Loop_Task(uint64 seq) : Task(seq)
 {
-    std::lock_guard<std::mutex> guard(m_mutex);
-    m_queue.push_back(message_block);
-    m_length += message_block->length();
 }
 
-void Message_Queue::push_front(Message_Block *message_block)
+void Loop_Task::run()
 {
-    std::lock_guard<std::mutex> guard(m_mutex);
-    m_queue.push_front(message_block);
-    m_length += message_block->length();
-}
-
-Message_Block* Message_Queue::pop()
-{
-    std::lock_guard<std::mutex> guard(m_mutex);
-    
-    if(m_queue.empty())
+    while(m_running.load(std::memory_order_relaxed))
     {
-        return nullptr;
+        run_in_loop();
     }
-    
-    Message_Block* message_block = m_queue.front();
-    m_queue.pop_front();
-    m_length -= message_block->length();
-    
-    return message_block;
+}
+
+void Loop_Task::stop()
+{
+    m_running.store(false, std::memory_order_relaxed);
 }
 
 }

@@ -9,7 +9,7 @@
  *                   |/         (_______/  \_/                         *
  *                                                                     *
  *                                                                     *
- *     fly is an awesome c++ network library.                          *
+ *     fly is an awesome c++11 network library.                        *
  *                                                                     *
  *   @author: lichuan                                                  *
  *   @qq: 308831759                                                    *
@@ -22,6 +22,10 @@
 #ifndef FLY__NET__HOLDER
 #define FLY__NET__HOLDER
 
+#include <unordered_set>
+#include "fly/net/connection.hpp"
+#include "fly/net/message_pack.hpp"
+
 namespace fly {
 namespace net {
 
@@ -29,7 +33,13 @@ class Holder
 {
 public:
     virtual ~Holder() = default;
-    virtual void 
+    virtual void close_connection(std::shared_ptr<Connection> connection); //active
+    virtual void connection_be_closed(std::shared_ptr<Connection> connection); //passive
+    virtual void dispatch_message(Message_Pack *pack);
+    
+private:
+    std::mutex m_mutex;
+    std::unordered_set<uint64> m_alive_ids;
 };
 
 }

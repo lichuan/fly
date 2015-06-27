@@ -9,7 +9,7 @@
  *                   |/         (_______/  \_/                         *
  *                                                                     *
  *                                                                     *
- *     fly is an awesome c++ network library.                          *
+ *     fly is an awesome c++11 network library.                        *
  *                                                                     *
  *   @author: lichuan                                                  *
  *   @qq: 308831759                                                    *
@@ -41,18 +41,6 @@ protected:
     
 private:
     uint64 m_seq;
-};
-
-class Loop_Task : public Task
-{
-public:
-    Loop_Task(uint64 seq);
-    virtual void run() override;
-    virtual void run_in_loop() = 0;
-    void stop();
-
-private:
-    bool m_running = true;
 };
 
 }

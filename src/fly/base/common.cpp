@@ -9,7 +9,7 @@
  *                   |/         (_______/  \_/                         *
  *                                                                     *
  *                                                                     *
- *     fly is an awesome c++ network library.                          *
+ *     fly is an awesome c++11 network library.                        *
  *                                                                     *
  *   @author: lichuan                                                  *
  *   @qq: 308831759                                                    *
@@ -27,12 +27,12 @@ namespace base {
 
 uint64 ID_Allocator::new_id()
 {
-    if(m_id >= 18446744073709551615UL)
+    if(m_id.load(std::memory_order_relaxed) >= 18446744073709551615UL)
     {
-        m_id = 1;
+        m_id.store(1, std::memory_order_relaxed);
     }
     
-    return m_id++;
+    return m_id.fetch_add(1, std::memory_order_relaxed);
 }
 
 uint32 random_32()

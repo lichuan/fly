@@ -9,28 +9,50 @@
  *                   |/         (_______/  \_/                         *
  *                                                                     *
  *                                                                     *
- *     fly is an awesome c++ network library.                          *
+ *     fly is an awesome c++11 network library.                        *
  *                                                                     *
  *   @author: lichuan                                                  *
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-23 16:49:58                                        *
+ *   @date: 2015-06-22 18:04:48                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef FLY__NET__TCP_CLIENT
-#define FLY__NET__TCP_CLIENT
+#include "fly/net/message_block_queue.hpp"
 
 namespace fly {
 namespace net {
 
-class TCP_Client
+void Message_Block_Queue::push(Message_Block *message_block)
 {
-public:
-};
+    std::lock_guard<std::mutex> guard(m_mutex);
+    m_queue.push_back(message_block);
+    m_length += message_block->length();
+}
+
+void Message_Block_Queue::push_front(Message_Block *message_block)
+{
+    std::lock_guard<std::mutex> guard(m_mutex);
+    m_queue.push_front(message_block);
+    m_length += message_block->length();
+}
+
+Message_Block* Message_Block_Queue::pop()
+{
+    std::lock_guard<std::mutex> guard(m_mutex);
+    
+    if(m_queue.empty())
+    {
+        return nullptr;
+    }
+    
+    Message_Block* message_block = m_queue.front();
+    m_queue.pop_front();
+    m_length -= message_block->length();
+    
+    return message_block;
+}
 
 }
 }
-
-#endif

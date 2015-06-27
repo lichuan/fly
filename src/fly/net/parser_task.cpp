@@ -15,34 +15,31 @@
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-22 19:53:53                                        *
+ *   @date: 2015-06-24 20:50:18                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef FLY__NET__ACCEPTOR
-#define FLY__NET__ACCEPTOR
-
-#include <memory>
-#include <thread>
-#include "fly/net/connection.hpp"
+#include "fly/net/parser_task.hpp"
 
 namespace fly {
 namespace net {
 
-class Acceptor
+Parser_Task::Parser_Task(uint64 seq) : Task(seq)
 {
-public:
-    Acceptor(const Addr &addr, std::function<void(std::shared_ptr<Connection>)> new_conn_cb);
-    void start();
-    void wait();
-    
-private:
-    std::function<void(std::shared_ptr<Connection>)> m_new_conn_cb;
-    Addr m_listen_addr;
-    std::thread m_thread;
-};
+}
+
+void Parser_Task::push_connection(std::shared_ptr<Connection> connection)
+{
+    m_queue.push(connection);
+}
+
+void Parser_Task::run()
+{
+    while(std::shared_ptr<Connection> connection = m_queue.pop())
+    {
+        connection->parse();
+    }
+}
 
 }
 }
-
-#endif

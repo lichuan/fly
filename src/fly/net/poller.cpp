@@ -9,7 +9,7 @@
  *                   |/         (_______/  \_/                         *
  *                                                                     *
  *                                                                     *
- *     fly is an awesome c++ network library.                          *
+ *     fly is an awesome c++11 network library.                        *
  *                                                                     *
  *   @author: lichuan                                                  *
  *   @qq: 308831759                                                    *
@@ -23,5 +23,31 @@
 
 namespace fly {
 namespace net {
+
+Poller::Poller(uint32 num)
+{
+    m_scheduler.reset(new fly::task::Scheduler(num));
+    m_scheduler->start();
+    
+    for(uint32 i = 0; i < num; ++i)
+    {
+        auto *poller_task = new Poller_Task(i);
+        m_poller_tasks.push_back(poller_task);
+        m_scheduler->schedule_task(poller_task);
+    }
+    
+    m_num = num;
+}
+
+void Poller::wait()
+{
+    m_scheduler->wait();
+}
+
+void Poller::register_connection(std::shared_ptr<Connection> connection)
+{
+    m_poller_tasks[connection->id() % m_num]->register_connection(connection);
+}
+
 }
 }

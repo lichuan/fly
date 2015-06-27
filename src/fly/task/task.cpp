@@ -9,7 +9,7 @@
  *                   |/         (_______/  \_/                         *
  *                                                                     *
  *                                                                     *
- *     fly is an awesome c++ network library.                          *
+ *     fly is an awesome c++11 network library.                        *
  *                                                                     *
  *   @author: lichuan                                                  *
  *   @qq: 308831759                                                    *
@@ -37,23 +37,6 @@ uint64 Task::seq()
 void Task::set_executor_id(uint32 id)
 {
     m_executor_id = id;
-}
-
-Loop_Task::Loop_Task(uint64 seq) : Task(seq)
-{
-}
-
-void Loop_Task::run()
-{
-    while(m_running)
-    {
-        run_in_loop();
-    }
-}
-
-void Loop_Task::stop()
-{
-    m_running = false;
 }
 
 }

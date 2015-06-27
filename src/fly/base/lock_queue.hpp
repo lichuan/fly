@@ -9,7 +9,7 @@
  *                   |/         (_______/  \_/                         *
  *                                                                     *
  *                                                                     *
- *     fly is an awesome c++ network library.                          *
+ *     fly is an awesome c++11 network library.                        *
  *                                                                     *
  *   @author: lichuan                                                  *
  *   @qq: 308831759                                                    *
@@ -29,37 +29,64 @@ namespace fly {
 namespace base {
 
 template<typename T>
-class Lock_Queue;
-
-template<typename T>
-class Lock_Queue<T*>
+class Lock_Queue
 {
 public:
-    void push(T *element)
+    void push(T element)
     {
         std::lock_guard<std::mutex> guard(m_mutex);
         m_queue.push_back(element);
     }
     
-    T* pop()
+    T pop()
     {
         std::lock_guard<std::mutex> guard(m_mutex);
-        
+
         if(m_queue.empty())
         {
-            return nullptr;
+            return T();
         }
         
-        T *element = m_queue.front();
+        T element = m_queue.front();
         m_queue.pop_front();
         
         return element;
     }
     
 private:
-    std::deque<T*> m_queue;
+    std::deque<T> m_queue;
     std::mutex m_mutex;
 };
+
+// template<typename T>
+// class Lock_Queue<T*>
+// {
+// public:
+//     void push(T *element)
+//     {
+//         std::lock_guard<std::mutex> guard(m_mutex);
+//         m_queue.push_back(element);
+//     }
+
+//     T* pop()
+//     {
+//         std::lock_guard<std::mutex> guard(m_mutex);
+        
+//         if(m_queue.empty())
+//         {
+//             return nullptr;
+//         }
+        
+//         T *element = m_queue.front();
+//         m_queue.pop_front();
+        
+//         return element;
+//     }
+    
+// private:
+//     std::deque<T*> m_queue;
+//     std::mutex m_mutex;
+// };
 
 }
 }

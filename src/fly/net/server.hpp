@@ -15,31 +15,19 @@
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-22 19:53:53                                        *
+ *   @date: 2015-06-23 16:48:13                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef FLY__NET__ACCEPTOR
-#define FLY__NET__ACCEPTOR
-
-#include <memory>
-#include <thread>
-#include "fly/net/connection.hpp"
+#ifndef FLY__NET__SERVER
+#define FLY__NET__SERVER
 
 namespace fly {
 namespace net {
 
-class Acceptor
+class Server
 {
 public:
-    Acceptor(const Addr &addr, std::function<void(std::shared_ptr<Connection>)> new_conn_cb);
-    void start();
-    void wait();
-    
-private:
-    std::function<void(std::shared_ptr<Connection>)> m_new_conn_cb;
-    Addr m_listen_addr;
-    std::thread m_thread;
 };
 
 }

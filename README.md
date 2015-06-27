@@ -1,5 +1,5 @@
 #fly
-  fly is an awesome c++ network library.
+  fly is an awesome new c++11 standard network library.
 
 #build
   fly is built by scons tool, make sure that you have installed scons in your system. for more info

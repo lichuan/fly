@@ -9,7 +9,7 @@
  *                   |/         (_______/  \_/                         *
  *                                                                     *
  *                                                                     *
- *     fly is an awesome c++ network library.                          *
+ *     fly is an awesome c++11 network library.                        *
  *                                                                     *
  *   @author: lichuan                                                  *
  *   @qq: 308831759                                                    *
@@ -34,7 +34,7 @@ public:
     Scheduler(uint32 num);
     void schedule_task(Task *task);
     void start();
-    void stop();
+    void wait();
     
 private:
     std::vector<Executor*> m_executors;

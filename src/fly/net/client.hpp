@@ -9,37 +9,25 @@
  *                   |/         (_______/  \_/                         *
  *                                                                     *
  *                                                                     *
- *     fly is an awesome c++ network library.                          *
+ *     fly is an awesome c++11 network library.                        *
  *                                                                     *
  *   @author: lichuan                                                  *
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-22 17:48:41                                        *
+ *   @date: 2015-06-23 16:49:58                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef FLY__NET__MESSAGE_QUEUE
-#define FLY__NET__MESSAGE_QUEUE
-
-#include <mutex>
-#include <deque>
-#include "fly/net/message_block.hpp"
+#ifndef FLY__NET__CLIENT
+#define FLY__NET__CLIENT
 
 namespace fly {
 namespace net {
 
-class Message_Queue
+class Client
 {
 public:
-    void push(Message_Block *message_block);    
-    void push_front(Message_Block *message_block);
-    Message_Block* pop();
-    
-private:
-    std::deque<Message_Block*> m_queue;
-    std::mutex m_mutex;
-    uint32 m_length = 0;
 };
 
 }

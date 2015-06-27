@@ -9,7 +9,7 @@
  *                   |/         (_______/  \_/                         *
  *                                                                     *
  *                                                                     *
- *     fly is an awesome c++ network library.                          *
+ *     fly is an awesome c++11 network library.                        *
  *                                                                     *
  *   @author: lichuan                                                  *
  *   @qq: 308831759                                                    *
@@ -36,8 +36,8 @@ public:
     Executor();
     void run();
     void start();
-    void stop();
-    void push_task(Task *task);
+    void wait();
+    void add_task(Task *task);
     
 private:
     std::thread m_thread;

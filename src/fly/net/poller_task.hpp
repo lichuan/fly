@@ -15,31 +15,28 @@
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-22 19:53:53                                        *
+ *   @date: 2015-06-24 20:31:38                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef FLY__NET__ACCEPTOR
-#define FLY__NET__ACCEPTOR
+#ifndef FLY__NET__POLLER_TASK
+#define FLY__NET__POLLER_TASK
 
-#include <memory>
-#include <thread>
+#include "fly/task/loop_task.hpp"
 #include "fly/net/connection.hpp"
 
 namespace fly {
 namespace net {
 
-class Acceptor
+class Poller_Task : public fly::task::Loop_Task
 {
 public:
-    Acceptor(const Addr &addr, std::function<void(std::shared_ptr<Connection>)> new_conn_cb);
-    void start();
-    void wait();
+    Poller_Task(uint64 seq);
+    void register_connection(std::shared_ptr<Connection> connection);
+    void run_in_loop() override;
     
 private:
-    std::function<void(std::shared_ptr<Connection>)> m_new_conn_cb;
-    Addr m_listen_addr;
-    std::thread m_thread;
+    int32 m_fd;
 };
 
 }

@@ -9,28 +9,45 @@
  *                   |/         (_______/  \_/                         *
  *                                                                     *
  *                                                                     *
- *     fly is an awesome c++ network library.                          *
+ *     fly is an awesome c++11 network library.                        *
  *                                                                     *
  *   @author: lichuan                                                  *
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-23 16:48:13                                        *
+ *   @date: 2015-06-24 20:46:52                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef FLY__NET__TCP_SERVER
-#define FLY__NET__TCP_SERVER
+#include "fly/net/parser.hpp"
 
 namespace fly {
 namespace net {
 
-class TCP_Server
+Parser::Parser(uint32 num)
 {
-public:
-};
+    m_scheduler.reset(new fly::task::Scheduler(num));
+    m_scheduler->start();
+    
+    for(uint32 i = 0; i < num; ++i)
+    {
+        auto *parser_task = new Parser_Task(i);
+        m_parser_tasks.push_back(parser_task);
+        m_scheduler->schedule_task(parser_task);
+    }
+
+    m_num = num;
+}
+
+void Parser::wait()
+{
+    m_scheduler->wait();
+}
+
+void Parser::register_connection(std::shared_ptr<Connection> connection)
+{
+    connection->m_parser_task = m_parser_tasks[connection->id() % m_num];
+}
 
 }
 }
-
-#endif
