@@ -26,6 +26,46 @@ namespace net {
 
 void Holder::connection_be_closed(std::shared_ptr<Connection> connection)
 {
+    {
+        std::lock_guard<std::mutex> guard(m_connection_mutex);
+        uint64 id = connection->id();
+        
+        if(m_alive_ids.find(id) == m_alive_ids.end())
+        {
+            return;
+        }
+        
+        m_alive_ids.erase(id);
+    }
+    
+    connection_be_closed(connection);
+}
+
+void Holder::init_connection(std::shared_ptr<Connection> connection)
+{
+    {
+        std::lock_guard<std::mutex> guard(m_connection_mutex);
+        m_alive_ids.insert(connection->id());
+    }
+
+    init_connection(connection);
+}
+
+void Holder::close_connection(std::shared_ptr<Connection> connection)
+{
+    {
+        std::lock_guard<std::mutex> guard(m_connection_mutex);
+        uint64 id = connection->id();
+        
+        if(m_alive_ids.find(id) == m_alive_ids.end())
+        {
+            return;
+        }
+    
+        m_alive_ids.erase(id);
+    }
+    
+    close_connection(connection);
 }
 
 }

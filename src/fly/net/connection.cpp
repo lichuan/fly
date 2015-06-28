@@ -62,6 +62,10 @@ void Connection::send(void *data, uint32 size)
     message_block->write_ptr(size);
 }
 
+void Connection::close()
+{
+}
+
 void Connection::parse()
 {
 }

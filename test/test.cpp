@@ -19,7 +19,6 @@
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <iostream>
 #include <unistd.h>
 #include "fly/init.hpp"
 #include "fly/base/logger.hpp"
@@ -29,20 +28,6 @@
 #include "fly/task/loop_task.hpp"
 
 using namespace std;
-
-class Print_Task : public fly::task::Loop_Task
-{
-public:
-    Print_Task(uint64 seq) : Loop_Task(seq)
-    {        
-    }
-
-    virtual void run_in_loop() override
-    {
-        cout << "Print_Task::run_in_loop." << endl;
-        sleep(1);
-    }
-};
 
 int main()
 {
@@ -54,11 +39,4 @@ int main()
     
     //test logger
     LOG_INFO("this is a msg to logger, I am %s, 1024 * 1024 = %d", "lichuan", 1024 * 1024);
-    
-    //test task
-    fly::task::Scheduler scheduler(1);
-    scheduler.schedule_task(new Print_Task(0));
-    scheduler.start();
-    scheduler.wait();    
-    cout << "test end" << endl;
 }
