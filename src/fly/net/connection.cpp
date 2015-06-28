@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <cstring>
 #include "fly/net/connection.hpp"
+#include "fly/net/poller_task.hpp"
 
 namespace fly {
 namespace net {
@@ -60,10 +61,12 @@ void Connection::send(void *data, uint32 size)
     Message_Block *message_block = new Message_Block(size);
     memcpy(message_block->read_ptr(), data, size);
     message_block->write_ptr(size);
+    m_poller_task->write_connection(shared_from_this());
 }
 
 void Connection::close()
 {
+    m_poller_task->close_connection(shared_from_this());
 }
 
 void Connection::parse()
