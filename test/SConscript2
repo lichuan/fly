@@ -1,0 +1,3 @@
+Import("env")
+test_client = env.Program("test_client", Glob("test_client.cpp"))
+Return("test_client")

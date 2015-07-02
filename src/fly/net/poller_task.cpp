@@ -32,11 +32,11 @@ namespace net {
 
 Poller_Task::Poller_Task(uint64 seq) : Loop_Task(seq)
 {
-    m_fd = epoll_create(4); //set 4 temporarily for test case
+    m_fd = epoll_create1(0);
     
     if(m_fd < 0)
     {
-        LOG_FATAL("epoll_create failed in Poller_Task::Poller_Task");
+        LOG_FATAL("epoll_create1 failed in Poller_Task::Poller_Task");
     }
     
     m_close_event_fd = eventfd(0, 0);
@@ -142,7 +142,7 @@ void Poller_Task::do_write(std::shared_ptr<Connection> connection)
             epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
             close(fd);
             connection->m_poller_task = nullptr;
-            connection->m_holder->Holder::connection_be_closed(connection->shared_from_this());
+            connection->m_holder->Holder::connection_be_closed(connection);
 
             break;
         }
@@ -198,7 +198,7 @@ void Poller_Task::do_close()
             epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
             close(fd);
             connection->m_poller_task = nullptr;
-            connection->m_holder->Holder::close_connection(connection->shared_from_this());
+            connection->m_holder->Holder::close_connection(connection);
         }
     }
 }

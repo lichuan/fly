@@ -1,3 +1,0 @@
-Import("env")
-test = env.Program("test", Glob("test.cpp"))
-Return("test")

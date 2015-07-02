@@ -23,9 +23,12 @@
 #include <cstring>
 #include "fly/net/connection.hpp"
 #include "fly/net/poller_task.hpp"
+#include "fly/base/logger.hpp"
 
 namespace fly {
 namespace net {
+
+fly::base::ID_Allocator Connection::m_id_allocator;
 
 Connection::~Connection()
 {
@@ -67,6 +70,16 @@ void Connection::close()
 
 void Connection::parse()
 {
+}
+
+const Addr& Connection::peer_addr()
+{
+    return m_peer_addr;
+}
+
+void Connection::holder(Holder *_holder)
+{
+    m_holder = _holder;
 }
 
 }

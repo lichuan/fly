@@ -36,7 +36,6 @@ class Server;
 
 class Connection : public std::enable_shared_from_this<Connection>
 {
-    friend class Poller;
     friend class Parser;
     friend class Poller_Task;
     friend class Parser_Task;
@@ -48,7 +47,9 @@ public:
     uint64 id();
     void close();
     void send(void *data, uint32 size);
-    
+    const Addr& peer_addr();
+    void holder(Holder *_holder);
+
 private:
     void parse();
     int32 m_fd;

@@ -35,7 +35,7 @@ public:
     virtual ~Holder() = default;
     virtual void close_connection(std::shared_ptr<Connection> connection); //active
     virtual void connection_be_closed(std::shared_ptr<Connection> connection); //passive
-    virtual void dispatch_message(Message_Pack *pack) = 0;
+    virtual void dispatch_message(std::unique_ptr<Message_Pack> pack) = 0;
     virtual void init_connection(std::shared_ptr<Connection> connection);
     
 private:

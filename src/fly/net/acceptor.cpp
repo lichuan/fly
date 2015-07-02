@@ -32,10 +32,10 @@
 namespace fly {
 namespace net {
 
-Acceptor::Acceptor(const Addr &addr, std::function<void(std::shared_ptr<Connection>)> new_conn_cb)
+Acceptor::Acceptor(const Addr &addr, std::function<void(std::shared_ptr<Connection>)> cb)
 {
     m_listen_addr = addr;
-    m_new_conn_cb = new_conn_cb;
+    m_cb = cb;
 }
 
 void Acceptor::start()
@@ -98,7 +98,7 @@ void Acceptor::start()
             inet_ntop(AF_INET, &client_addr.sin_addr, host, INET_ADDRSTRLEN);
             uint16 port = ntohs(client_addr.sin_port);
             LOG_INFO("new connection %s:%d arrived", host, port);
-            m_new_conn_cb(std::make_shared<Connection>(client_fd, Addr(host, port)));
+            m_cb(std::make_shared<Connection>(client_fd, Addr(host, port)));
         }
     });
     

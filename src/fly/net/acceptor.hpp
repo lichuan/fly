@@ -32,12 +32,12 @@ namespace net {
 class Acceptor
 {
 public:
-    Acceptor(const Addr &addr, std::function<void(std::shared_ptr<Connection>)> new_conn_cb);
+    Acceptor(const Addr &addr, std::function<void(std::shared_ptr<Connection>)> cb);
     void start();
     void wait();
     
 private:
-    std::function<void(std::shared_ptr<Connection>)> m_new_conn_cb;
+    std::function<void(std::shared_ptr<Connection>)> m_cb;
     Addr m_listen_addr;
     std::thread m_thread;
 };

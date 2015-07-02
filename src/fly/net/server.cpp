@@ -30,12 +30,12 @@ Server::Server(const Addr &addr, std::function<bool(std::shared_ptr<Connection>)
     m_poller = poller;
     m_parser = parser;
     
-    m_acceptor.reset(new Acceptor(addr, [&](std::shared_ptr<Connection> connection)
+    m_acceptor.reset(new Acceptor(addr, [&, cb](std::shared_ptr<Connection> connection)
     {
         if(cb(connection))
         {
-            m_poller->register_connection(connection);
             m_parser->register_connection(connection);
+            m_poller->register_connection(connection);
         }
         else
         {
@@ -49,12 +49,12 @@ Server::Server(const Addr &addr, std::function<bool(std::shared_ptr<Connection>)
     m_poller.reset(new Poller(poller_num));
     m_parser.reset(new Parser(parser_num));
 
-    m_acceptor.reset(new Acceptor(addr, [&](std::shared_ptr<Connection> connection)
+    m_acceptor.reset(new Acceptor(addr, [&, cb](std::shared_ptr<Connection> connection)
     {
         if(cb(connection))
         {
-            m_poller->register_connection(connection);
             m_parser->register_connection(connection);
+            m_poller->register_connection(connection);
         }
         else
         {
