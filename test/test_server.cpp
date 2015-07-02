@@ -52,7 +52,13 @@ int main()
         LOG_INFO("connection from %s:%d be closed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
     }));
 
-    server->start();
-    LOG_INFO("start server ok!");
-    server->wait();
+    if(server->start())
+    {
+        LOG_INFO("start server ok!");
+        server->wait();
+    }
+    else
+    {
+        LOG_ERROR("start server failed");
+    }
 }

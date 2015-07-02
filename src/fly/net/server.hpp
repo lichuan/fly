@@ -47,7 +47,7 @@ public:
            std::function<void(std::shared_ptr<Connection>)> be_closed_cb,
            uint32 poller_num = 1, uint32 parser_num = 1);
     void wait();
-    void start();
+    bool start();
     
 private:
     std::unique_ptr<Acceptor> m_acceptor;

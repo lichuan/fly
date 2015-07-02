@@ -33,7 +33,7 @@ class Acceptor
 {
 public:
     Acceptor(const Addr &addr, std::function<void(std::shared_ptr<Connection>)> cb);
-    void start();
+    bool start();
     void wait();
     
 private:

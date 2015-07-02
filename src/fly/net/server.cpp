@@ -86,7 +86,7 @@ Server::Server(const Addr &addr,
     }));
 }
 
-void Server::start()
+bool Server::start()
 {
     if(m_poller.unique())
     {
@@ -98,7 +98,7 @@ void Server::start()
         m_parser->start();
     }
 
-    m_acceptor->start();
+    return m_acceptor->start();
 }
 
 void Server::wait()

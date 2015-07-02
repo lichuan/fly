@@ -38,7 +38,7 @@ Acceptor::Acceptor(const Addr &addr, std::function<void(std::shared_ptr<Connecti
     m_cb = cb;
 }
 
-void Acceptor::start()
+bool Acceptor::start()
 {
     int32 listen_fd = socket(AF_INET, SOCK_STREAM, 0);
     
@@ -46,7 +46,7 @@ void Acceptor::start()
     {
         LOG_FATAL("socket failed in Acceptor::start, listen addr is %s:%d", m_listen_addr.m_host.c_str(), m_listen_addr.m_port);
         
-        return;
+        return false;
     }
     
     int32 opt = 1;
@@ -56,7 +56,7 @@ void Acceptor::start()
     {
         LOG_FATAL("setsockopt failed in Acceptor::start, listen addr is %s:%d", m_listen_addr.m_host.c_str(), m_listen_addr.m_port);
         
-        return;
+        return false;
     }
     
     struct sockaddr_in server_addr;
@@ -69,14 +69,14 @@ void Acceptor::start()
     {
         LOG_FATAL("bind failed in Acceptor::start, listen addr is %s:%d", m_listen_addr.m_host.c_str(), m_listen_addr.m_port);
         
-        return;
+        return false;
     }
     
     if(listen(listen_fd, SOMAXCONN) < 0)
     {
         LOG_FATAL("listen failed in Acceptor::start, listen addr is %s:%d", m_listen_addr.m_host.c_str(), m_listen_addr.m_port);
         
-        return;
+        return false;
     }
     
     std::thread tmp([&]()
@@ -103,6 +103,8 @@ void Acceptor::start()
     });
     
     m_thread = std::move(tmp);
+
+    return true;
 }
 
 void Acceptor::wait()
