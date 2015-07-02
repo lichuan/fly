@@ -36,8 +36,8 @@ public:
     virtual void close_connection(std::shared_ptr<Connection> connection); //active
     virtual void connection_be_closed(std::shared_ptr<Connection> connection); //passive
     virtual void dispatch_message(Message_Pack *pack) = 0;
-    virtual void init_connection(std::shared_ptr<Connection> connection); //init, for example, send the first pack on connection
-
+    virtual void init_connection(std::shared_ptr<Connection> connection);
+    
 private:
     std::mutex m_connection_mutex;
     std::unordered_set<uint64> m_alive_ids;

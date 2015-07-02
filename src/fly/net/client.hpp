@@ -22,12 +22,15 @@
 #ifndef FLY__NET__CLIENT
 #define FLY__NET__CLIENT
 
+#include "fly/net/connection.hpp"
+
 namespace fly {
 namespace net {
 
 class Client
 {
 public:
+    bool connect(const Addr &addr);
 };
 
 }

@@ -73,8 +73,6 @@ Poller_Task::Poller_Task(uint64 seq) : Loop_Task(seq)
 void Poller_Task::register_connection(std::shared_ptr<Connection> connection)
 {
     struct epoll_event event;
-    connection->m_poller_task = this;
-    connection->m_holder->Holder::init_connection(connection);
     event.data.ptr = connection.get();
     event.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET;
     int32 ret = epoll_ctl(m_fd, EPOLL_CTL_ADD, connection->m_fd, &event);
@@ -85,6 +83,9 @@ void Poller_Task::register_connection(std::shared_ptr<Connection> connection)
 
         return;
     }
+    
+    connection->m_poller_task = this;
+    connection->m_holder->Holder::init_connection(connection);
 }
 
 void Poller_Task::close_connection(std::shared_ptr<Connection> connection)
@@ -119,7 +120,7 @@ void Poller_Task::do_write(std::shared_ptr<Connection> connection)
     while(Message_Block *message_block = send_queue.pop())
     {
         int32 message_length = message_block->length();
-        int32 num = write(m_fd, message_block->read_ptr(), message_length);
+        int32 num = write(fd, message_block->read_ptr(), message_length);
         
         if(num < 0)
         {
@@ -140,6 +141,7 @@ void Poller_Task::do_write(std::shared_ptr<Connection> connection)
         {
             epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
             close(fd);
+            connection->m_poller_task = nullptr;
             connection->m_holder->Holder::connection_be_closed(connection->shared_from_this());
 
             break;
@@ -169,18 +171,35 @@ void Poller_Task::do_write()
     
     while(std::shared_ptr<Connection> connection = m_write_queue.pop())
     {
-        do_write(connection);
+        if(connection->m_poller_task != nullptr)
+        {
+            do_write(connection);
+        }
     }
 }
 
 void Poller_Task::do_close()
 {
+    uint64 data = 0;
+    int32 num = read(m_close_event_fd, &data, sizeof(uint64));
+    
+    if(num != sizeof(uint64))
+    {
+        LOG_FATAL("read m_close_event_fd failed in Poller_Task::do_write");
+        
+        return;
+    }
+    
     while(std::shared_ptr<Connection> connection = m_close_queue.pop())
     {
-        int32 fd = connection->m_fd;
-        epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
-        close(fd);
-        connection->m_holder->Holder::close_connection(connection->shared_from_this());
+        if(connection->m_poller_task != nullptr)
+        {
+            int32 fd = connection->m_fd;
+            epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
+            close(fd);
+            connection->m_poller_task = nullptr;
+            connection->m_holder->Holder::close_connection(connection->shared_from_this());
+        }
     }
 }
 
@@ -206,6 +225,7 @@ void Poller_Task::run_in_loop()
         {
             epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
             close(fd);
+            connection->m_poller_task = nullptr;
             connection->m_holder->Holder::connection_be_closed(connection->shared_from_this());
         }
         else if(event & EPOLLIN)
@@ -239,6 +259,7 @@ void Poller_Task::run_in_loop()
                     {
                         epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
                         close(fd);
+                        connection->m_poller_task = nullptr;
                         connection->m_holder->Holder::connection_be_closed(connection->shared_from_this());
 
                         break;

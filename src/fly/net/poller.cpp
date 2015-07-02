@@ -42,6 +42,11 @@ Poller::Poller(uint32 num)
 void Poller::wait()
 {
     m_scheduler->wait();
+
+    for(auto poll_task : m_poller_tasks)
+    {
+        delete poll_task;
+    }
 }
 
 void Poller::register_connection(std::shared_ptr<Connection> connection)

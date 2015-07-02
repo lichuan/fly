@@ -42,6 +42,11 @@ Parser::Parser(uint32 num)
 void Parser::wait()
 {
     m_scheduler->wait();
+
+    for(auto parser_task : m_parser_tasks)
+    {
+        delete parser_task;
+    }
 }
 
 void Parser::register_connection(std::shared_ptr<Connection> connection)

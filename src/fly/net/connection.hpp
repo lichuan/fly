@@ -32,6 +32,7 @@ namespace net {
 class Poller_Task;
 class Parser_Task;
 class Holder;
+class Server;
 
 class Connection : public std::enable_shared_from_this<Connection>
 {
@@ -39,11 +40,11 @@ class Connection : public std::enable_shared_from_this<Connection>
     friend class Parser;
     friend class Poller_Task;
     friend class Parser_Task;
+    friend class Server;
     
 public:
     Connection(int32 fd, const Addr &peer_addr);
     ~Connection();
-    void id(uint64 _id);
     uint64 id();
     void close();
     void send(void *data, uint32 size);
@@ -56,8 +57,9 @@ private:
     Holder *m_holder = nullptr;
     Message_Block_Queue m_recv_msg_queue;
     Message_Block_Queue m_send_msg_queue;
-    Poller_Task *m_poller_task = nullptr; 
+    Poller_Task *m_poller_task = nullptr;
     Parser_Task *m_parser_task = nullptr;
+    static fly::base::ID_Allocator m_id_allocator;
 };
 
 }
