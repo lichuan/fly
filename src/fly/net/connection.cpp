@@ -77,10 +77,5 @@ const Addr& Connection::peer_addr()
     return m_peer_addr;
 }
 
-void Connection::holder(Holder *_holder)
-{
-    m_holder = _holder;
-}
-
 }
 }

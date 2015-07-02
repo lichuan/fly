@@ -30,10 +30,18 @@
 namespace fly {
 namespace net {
 
-Client::Client(const Addr &addr, std::function<void(std::shared_ptr<Connection>)> cb, std::shared_ptr<Poller> poller, std::shared_ptr<Parser> parser)
+Client::Client(const Addr &addr,
+           std::function<void(std::shared_ptr<Connection>)> init_cb,
+           std::function<void(std::unique_ptr<Message_Pack>)> dispatch_cb,
+           std::function<void(std::shared_ptr<Connection>)> close_cb,
+           std::function<void(std::shared_ptr<Connection>)> be_closed_cb,
+           std::shared_ptr<Poller> poller, std::shared_ptr<Parser> parser)
 {
     m_addr = addr;
-    m_cb = cb;
+    m_init_cb = init_cb;
+    m_dispatch_cb = dispatch_cb;
+    m_close_cb = close_cb;
+    m_be_closed_cb = be_closed_cb;
     m_poller = poller;
     m_parser = parser;
 }
@@ -63,11 +71,14 @@ bool Client::connect()
     }
 
     std::shared_ptr<Connection> connection = std::make_shared<Connection>(fd, m_addr);
-    m_cb(connection);
+    connection->m_init_cb = m_init_cb;
+    connection->m_dispatch_cb = m_dispatch_cb;
+    connection->m_close_cb = m_close_cb;
+    connection->m_be_closed_cb = m_be_closed_cb;
     m_parser->register_connection(connection);
     m_poller->register_connection(connection);
     m_id = connection->id();
-
+    
     return true;
 }
 

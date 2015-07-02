@@ -25,7 +25,6 @@
 #include "fly/base/logger.hpp"
 #include "fly/net/poller_task.hpp"
 #include "fly/net/parser_task.hpp"
-#include "fly/net/holder.hpp"
 
 namespace fly {
 namespace net {
@@ -85,7 +84,7 @@ void Poller_Task::register_connection(std::shared_ptr<Connection> connection)
     }
     
     connection->m_poller_task = this;
-    connection->m_holder->Holder::init_connection(connection);
+    connection->m_init_cb(connection);
 }
 
 void Poller_Task::close_connection(std::shared_ptr<Connection> connection)
@@ -141,9 +140,9 @@ void Poller_Task::do_write(std::shared_ptr<Connection> connection)
         {
             epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
             close(fd);
-            connection->m_poller_task = nullptr;
-            connection->m_holder->Holder::connection_be_closed(connection);
-
+            connection->m_closed.store(true, std::memory_order_relaxed);
+            connection->m_be_closed_cb(connection);
+            
             break;
         }
                 
@@ -171,7 +170,7 @@ void Poller_Task::do_write()
     
     while(std::shared_ptr<Connection> connection = m_write_queue.pop())
     {
-        if(connection->m_poller_task != nullptr)
+        if(!connection->m_closed.load(std::memory_order_relaxed))
         {
             do_write(connection);
         }
@@ -192,13 +191,13 @@ void Poller_Task::do_close()
     
     while(std::shared_ptr<Connection> connection = m_close_queue.pop())
     {
-        if(connection->m_poller_task != nullptr)
+        if(!connection->m_closed.load(std::memory_order_relaxed))
         {
             int32 fd = connection->m_fd;
             epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
             close(fd);
-            connection->m_poller_task = nullptr;
-            connection->m_holder->Holder::close_connection(connection);
+            connection->m_closed.store(true, std::memory_order_relaxed);
+            connection->m_close_cb(connection);
         }
     }
 }
@@ -225,8 +224,8 @@ void Poller_Task::run_in_loop()
         {
             epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
             close(fd);
-            connection->m_poller_task = nullptr;
-            connection->m_holder->Holder::connection_be_closed(connection->shared_from_this());
+            connection->m_closed.store(true, std::memory_order_relaxed);
+            connection->m_be_closed_cb(connection->shared_from_this());
         }
         else if(event & EPOLLIN)
         {
@@ -259,12 +258,12 @@ void Poller_Task::run_in_loop()
                     {
                         epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
                         close(fd);
-                        connection->m_poller_task = nullptr;
-                        connection->m_holder->Holder::connection_be_closed(connection->shared_from_this());
+                        connection->m_closed.store(true, std::memory_order_relaxed);
+                        connection->m_be_closed_cb(connection->shared_from_this());
 
                         break;
                     }
-                
+                    
                     message_block->write_ptr(num);
                     recv_queue.push(message_block.release());
                     connection->m_parser_task->push_connection(connection->shared_from_this());
