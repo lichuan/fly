@@ -35,6 +35,7 @@ public:
     Server(const Addr &addr, std::function<bool(std::shared_ptr<Connection>)> cb, std::shared_ptr<Poller> poller, std::shared_ptr<Parser> parser);
     Server(const Addr &addr, std::function<bool(std::shared_ptr<Connection>)> cb, uint32 poller_num = 1, uint32 parser_num = 1);
     void wait();
+    void start();
     
 private:
     std::unique_ptr<Acceptor> m_acceptor;

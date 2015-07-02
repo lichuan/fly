@@ -63,6 +63,21 @@ Server::Server(const Addr &addr, std::function<bool(std::shared_ptr<Connection>)
     }));
 }
 
+void Server::start()
+{
+    if(m_poller.unique())
+    {
+        m_poller->start();
+    }
+
+    if(m_parser.unique())
+    {
+        m_parser->start();
+    }
+
+    m_acceptor->start();
+}
+
 void Server::wait()
 {
     if(m_poller.unique())

@@ -27,7 +27,6 @@ namespace net {
 Parser::Parser(uint32 num)
 {
     m_scheduler.reset(new fly::task::Scheduler(num));
-    m_scheduler->start();
     
     for(uint32 i = 0; i < num; ++i)
     {
@@ -37,6 +36,11 @@ Parser::Parser(uint32 num)
     }
 
     m_num = num;
+}
+
+void Parser::start()
+{
+    m_scheduler->start();
 }
 
 void Parser::wait()

@@ -27,7 +27,6 @@ namespace net {
 Poller::Poller(uint32 num)
 {
     m_scheduler.reset(new fly::task::Scheduler(num));
-    m_scheduler->start();
     
     for(uint32 i = 0; i < num; ++i)
     {
@@ -37,6 +36,11 @@ Poller::Poller(uint32 num)
     }
     
     m_num = num;
+}
+
+void Poller::start()
+{
+    m_scheduler->start();
 }
 
 void Poller::wait()

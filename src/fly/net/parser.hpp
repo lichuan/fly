@@ -34,6 +34,7 @@ class Parser
 public:
     Parser(uint32 num);
     void wait();
+    void start();
     void register_connection(std::shared_ptr<Connection> connection);
     
 private:
