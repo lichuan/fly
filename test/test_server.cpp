@@ -80,7 +80,6 @@ public:
         if(server->start())
         {
             LOG_INFO("start server ok!");
-            
             server->wait();
         }
         else

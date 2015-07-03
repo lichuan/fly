@@ -65,7 +65,7 @@ public:
                                                                       std::bind(&Test_Client::close, this, _1),
                                                                       std::bind(&Test_Client::be_closed, this, _1),
                                                                       poller, parser));
-
+        
         if(client->connect())
         {
             LOG_INFO("connect to server ok");
