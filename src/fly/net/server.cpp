@@ -41,13 +41,13 @@ Server::Server(const Addr &addr,
     {
         if(allow_cb(connection))
         {
+            connection->m_id = connection->m_id_allocator.new_id();
             connection->m_init_cb = init_cb;
             connection->m_dispatch_cb = dispatch_cb;
             connection->m_close_cb = close_cb;
             connection->m_be_closed_cb = be_closed_cb;
             m_parser->register_connection(connection);
             m_poller->register_connection(connection);
-            connection->m_id = connection->m_id_allocator.new_id();
         }
         else
         {
