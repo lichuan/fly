@@ -32,14 +32,14 @@ fly::base::ID_Allocator Connection::m_id_allocator;
 
 Connection::~Connection()
 {
-    while(auto *message_block = m_recv_msg_queue.pop())
+    while(auto *message_chunk = m_recv_msg_queue.pop())
     {
-        delete message_block;
+        delete message_chunk;
     }
 
-    while(auto *message_block = m_send_msg_queue.pop())
+    while(auto *message_chunk = m_send_msg_queue.pop())
     {
-        delete message_block;
+        delete message_chunk;
     }
 }
 
@@ -56,9 +56,9 @@ uint64 Connection::id()
 
 void Connection::send(void *data, uint32 size)
 {
-    Message_Block *message_block = new Message_Block(size);
-    memcpy(message_block->read_ptr(), data, size);
-    message_block->write_ptr(size);
+    Message_Chunk *message_chunk = new Message_Chunk(size);
+    memcpy(message_chunk->read_ptr(), data, size);
+    message_chunk->write_ptr(size);
     m_poller_task->write_connection(shared_from_this());
 }
 

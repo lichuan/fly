@@ -15,33 +15,31 @@
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-22 17:19:02                                        *
+ *   @date: 2015-06-22 17:48:41                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef FLY__NET__MESSAGE_BLOCK
-#define FLY__NET__MESSAGE_BLOCK
+#ifndef FLY__NET__MESSAGE_CHUNK_QUEUE
+#define FLY__NET__MESSAGE_CHUNK_QUEUE
 
-#include <vector>
-#include "fly/base/common.hpp"
+#include <mutex>
+#include <deque>
+#include "fly/net/message_chunk.hpp"
 
 namespace fly {
 namespace net {
 
-class Message_Block
+class Message_Chunk_Queue
 {
 public:
-    Message_Block(uint32 size);
-    char* read_ptr();
-    void read_ptr(uint32 count);
-    char* write_ptr();
-    void write_ptr(uint32 count);
-    uint32 length();
+    void push(Message_Chunk *message_chunk);    
+    void push_front(Message_Chunk *message_chunk);
+    Message_Chunk* pop();
     
 private:
-    std::vector<char> m_data;
-    uint32 m_write_pos = 0;
-    uint32 m_read_pos = 0;
+    std::deque<Message_Chunk*> m_queue;
+    std::mutex m_mutex;
+    uint32 m_length = 0;
 };
 
 }

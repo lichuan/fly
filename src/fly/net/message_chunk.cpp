@@ -19,37 +19,37 @@
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "fly/net/message_block.hpp"
+#include "fly/net/message_chunk.hpp"
 
 namespace fly {
 namespace net {
 
-Message_Block::Message_Block(uint32 size)
+Message_Chunk::Message_Chunk(uint32 size)
 {
     m_data.resize(size + 1, 0);
 }
 
-uint32 Message_Block::length()
+uint32 Message_Chunk::length()
 {
     return m_write_pos - m_read_pos;
 }
 
-char* Message_Block::read_ptr()
+char* Message_Chunk::read_ptr()
 {
     return &m_data[m_read_pos];
 }
 
-void Message_Block::read_ptr(uint32 count)
+void Message_Chunk::read_ptr(uint32 count)
 {
     m_read_pos += count;
 }
 
-char* Message_Block::write_ptr()
+char* Message_Chunk::write_ptr()
 {
     return &m_data[m_write_pos];
 }
 
-void Message_Block::write_ptr(uint32 count)
+void Message_Chunk::write_ptr(uint32 count)
 {
     m_write_pos += count;
 }

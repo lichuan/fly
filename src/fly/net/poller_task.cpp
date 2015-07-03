@@ -118,18 +118,18 @@ void Poller_Task::write_connection(std::shared_ptr<Connection> connection)
 void Poller_Task::do_write(std::shared_ptr<Connection> connection)
 {
     int32 fd = connection->m_fd;
-    Message_Block_Queue &send_queue = connection->m_send_msg_queue;
+    Message_Chunk_Queue &send_queue = connection->m_send_msg_queue;
 
-    while(Message_Block *message_block = send_queue.pop())
+    while(Message_Chunk *message_chunk = send_queue.pop())
     {
-        int32 message_length = message_block->length();
-        int32 num = write(fd, message_block->read_ptr(), message_length);
+        int32 message_length = message_chunk->length();
+        int32 num = write(fd, message_chunk->read_ptr(), message_length);
         
         if(num < 0)
         {
             if(errno == EAGAIN || errno == EWOULDBLOCK)
             {
-                send_queue.push_front(message_block);
+                send_queue.push_front(message_chunk);
                 
                 break;
             }
@@ -152,8 +152,8 @@ void Poller_Task::do_write(std::shared_ptr<Connection> connection)
                 
         if(num < message_length)
         {
-            message_block->read_ptr(num);
-            send_queue.push_front(message_block);
+            message_chunk->read_ptr(num);
+            send_queue.push_front(message_chunk);
 
             break;
         }
@@ -246,9 +246,9 @@ void Poller_Task::run_in_loop()
                 while(true)
                 {
                     auto REQ_SIZE = 4096;
-                    Message_Block_Queue &recv_queue = connection->m_recv_msg_queue;
-                    std::unique_ptr<Message_Block> message_block(new Message_Block(REQ_SIZE));
-                    int32 num = read(fd, message_block->read_ptr(), REQ_SIZE);
+                    Message_Chunk_Queue &recv_queue = connection->m_recv_msg_queue;
+                    std::unique_ptr<Message_Chunk> message_chunk(new Message_Chunk(REQ_SIZE));
+                    int32 num = read(fd, message_chunk->read_ptr(), REQ_SIZE);
                 
                     if(num < 0)
                     {
@@ -268,8 +268,8 @@ void Poller_Task::run_in_loop()
                         break;
                     }
                     
-                    message_block->write_ptr(num);
-                    recv_queue.push(message_block.release());
+                    message_chunk->write_ptr(num);
+                    recv_queue.push(message_chunk.release());
                     connection->m_parser_task->push_connection(connection->shared_from_this());
                 
                     if(num < REQ_SIZE)

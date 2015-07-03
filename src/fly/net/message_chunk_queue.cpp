@@ -15,34 +15,44 @@
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-22 17:48:41                                        *
+ *   @date: 2015-06-22 18:04:48                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef FLY__NET__MESSAGE_BLOCK_QUEUE
-#define FLY__NET__MESSAGE_BLOCK_QUEUE
-
-#include <mutex>
-#include <deque>
-#include "fly/net/message_block.hpp"
+#include "fly/net/message_chunk_queue.hpp"
 
 namespace fly {
 namespace net {
 
-class Message_Block_Queue
+void Message_Chunk_Queue::push(Message_Chunk *message_chunk)
 {
-public:
-    void push(Message_Block *message_block);    
-    void push_front(Message_Block *message_block);
-    Message_Block* pop();
+    std::lock_guard<std::mutex> guard(m_mutex);
+    m_queue.push_back(message_chunk);
+    m_length += message_chunk->length();
+}
+
+void Message_Chunk_Queue::push_front(Message_Chunk *message_chunk)
+{
+    std::lock_guard<std::mutex> guard(m_mutex);
+    m_queue.push_front(message_chunk);
+    m_length += message_chunk->length();
+}
+
+Message_Chunk* Message_Chunk_Queue::pop()
+{
+    std::lock_guard<std::mutex> guard(m_mutex);
     
-private:
-    std::deque<Message_Block*> m_queue;
-    std::mutex m_mutex;
-    uint32 m_length = 0;
-};
+    if(m_queue.empty())
+    {
+        return nullptr;
+    }
+    
+    Message_Chunk* message_chunk = m_queue.front();
+    m_queue.pop_front();
+    m_length -= message_chunk->length();
+    
+    return message_chunk;
+}
 
 }
 }
-
-#endif

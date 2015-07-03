@@ -24,7 +24,7 @@
 
 #include <memory>
 #include "fly/net/addr.hpp"
-#include "fly/net/message_block_queue.hpp"
+#include "fly/net/message_chunk_queue.hpp"
 
 namespace fly {
 namespace net {
@@ -56,8 +56,8 @@ private:
     uint64 m_id = 0;
     Addr m_peer_addr;
     std::atomic<bool> m_closed {false};
-    Message_Block_Queue m_recv_msg_queue;
-    Message_Block_Queue m_send_msg_queue;
+    Message_Chunk_Queue m_recv_msg_queue;
+    Message_Chunk_Queue m_send_msg_queue;
     Poller_Task *m_poller_task = nullptr;
     Parser_Task *m_parser_task = nullptr;
     static fly::base::ID_Allocator m_id_allocator;
