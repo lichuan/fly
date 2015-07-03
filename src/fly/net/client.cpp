@@ -71,13 +71,14 @@ bool Client::connect()
     }
 
     std::shared_ptr<Connection> connection = std::make_shared<Connection>(fd, m_addr);
+    m_id = connection->m_id_allocator.new_id();
+    connection->m_id = m_id;
     connection->m_init_cb = m_init_cb;
     connection->m_dispatch_cb = m_dispatch_cb;
     connection->m_close_cb = m_close_cb;
     connection->m_be_closed_cb = m_be_closed_cb;
     m_parser->register_connection(connection);
     m_poller->register_connection(connection);
-    m_id = connection->id();
     
     return true;
 }

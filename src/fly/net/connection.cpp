@@ -47,7 +47,6 @@ Connection::Connection(int32 fd, const Addr &peer_addr)
 {
     m_fd = fd;
     m_peer_addr = peer_addr;
-    m_id = m_id_allocator.new_id();
 }
 
 uint64 Connection::id()

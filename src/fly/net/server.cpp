@@ -47,6 +47,7 @@ Server::Server(const Addr &addr,
             connection->m_be_closed_cb = be_closed_cb;
             m_parser->register_connection(connection);
             m_poller->register_connection(connection);
+            connection->m_id = connection->m_id_allocator.new_id();
         }
         else
         {
