@@ -22,6 +22,7 @@
 #ifndef FLY__NET__MESSAGE_PACK
 #define FLY__NET__MESSAGE_PACK
 
+#include <rapidjson/rapidjson.h>
 #include "fly/net/connection.hpp"
 
 namespace fly {
