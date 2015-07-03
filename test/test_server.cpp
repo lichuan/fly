@@ -52,6 +52,7 @@ public:
         LOG_INFO("close connection from %s:%d", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
         std::lock_guard<std::mutex> guard(m_mutex);
         m_connections.erase(connection->id());
+        LOG_INFO("connection count: %u", m_connections.size());
     }
     
     void be_closed(std::shared_ptr<fly::net::Connection> connection)
@@ -59,6 +60,7 @@ public:
         LOG_INFO("connection from %s:%d be closed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
         std::lock_guard<std::mutex> guard(m_mutex);
         m_connections.erase(connection->id());
+        LOG_INFO("connection count: %u", m_connections.size());
     }
     
     void main()

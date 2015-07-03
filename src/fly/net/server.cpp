@@ -72,6 +72,7 @@ Server::Server(const Addr &addr,
     {
         if(allow_cb(connection))
         {
+            connection->m_id = connection->m_id_allocator.new_id();
             connection->m_init_cb = init_cb;
             connection->m_dispatch_cb = dispatch_cb;
             connection->m_close_cb = close_cb;
