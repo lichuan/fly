@@ -34,7 +34,7 @@ struct Addr
     uint16 m_port;
 
     Addr() = default;
-    
+
     Addr(const std::string &host, uint16 port)
     {
         m_host = host;

@@ -79,7 +79,7 @@ bool Acceptor::start()
         return false;
     }
     
-    std::thread tmp([&]()
+    std::thread tmp([=]()
     {
         while(true)
         {
@@ -89,7 +89,7 @@ bool Acceptor::start()
             
             if(client_fd < 0)
             {
-                LOG_FATAL("accept4 failed in Acceptor_Task::run_in_loop");
+                LOG_FATAL("accept4 failed in Acceptor::start");
                 
                 continue;
             }

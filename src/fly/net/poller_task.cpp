@@ -53,14 +53,18 @@ Poller_Task::Poller_Task(uint64 seq) : Loop_Task(seq)
     }
 
     struct epoll_event event;
+    static Connection close_udata(m_close_event_fd, Addr("close_event", 0));
+    event.data.ptr = &close_udata;
     event.events = EPOLLIN;
     int32 ret = epoll_ctl(m_fd, EPOLL_CTL_ADD, m_close_event_fd, &event);
-
+    
     if(ret < 0)
     {
         LOG_FATAL("close event epoll_ctl failed in Poller_Task::Poller_Task");
     }
 
+    static Connection write_udata(m_write_event_fd, Addr("write_event", 0));
+    event.data.ptr = &write_udata;
     ret = epoll_ctl(m_fd, EPOLL_CTL_ADD, m_write_event_fd, &event);
     
     if(ret < 0)

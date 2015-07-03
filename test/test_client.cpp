@@ -21,44 +21,67 @@
 
 #include <unistd.h>
 #include "fly/init.hpp"
-#include "fly/base/logger.hpp"
 #include "fly/net/client.hpp"
-#include "fly/net/message_pack.hpp"
+#include "fly/base/logger.hpp"
 
-using namespace std;
-using namespace fly::net;
+using namespace std::placeholders;
+
+class Test_Client : public fly::base::Singleton<Test_Client>
+{
+public:
+    void init(std::shared_ptr<fly::net::Connection> connection)
+    {
+        m_server_connection = connection;
+    }
+    
+    void dispatch(std::unique_ptr<fly::net::Message_Pack> connection)
+    {
+        LOG_INFO("disaptch message");
+    }
+    
+    void close(std::shared_ptr<fly::net::Connection> connection)
+    {
+        LOG_INFO("close connection from %s:%d", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
+    }
+    
+    void be_closed(std::shared_ptr<fly::net::Connection> connection)
+    {
+        LOG_INFO("connection from %s:%d be closed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
+    }
+    
+    void main()
+    {
+        //init library
+        fly::init();
+        
+        //init logger
+        fly::base::Logger::instance()->init(fly::base::DEBUG, "client", "./log/");
+        
+        std::shared_ptr<fly::net::Poller> poller(new fly::net::Poller(1));
+        std::shared_ptr<fly::net::Parser> parser(new fly::net::Parser(1));
+        std::unique_ptr<fly::net::Client> client(new fly::net::Client(fly::net::Addr("127.0.0.1", 8899),
+                                                                      std::bind(&Test_Client::init, this, _1),
+                                                                      std::bind(&Test_Client::dispatch, this, _1),
+                                                                      std::bind(&Test_Client::close, this, _1),
+                                                                      std::bind(&Test_Client::be_closed, this, _1),
+                                                                      poller, parser));
+
+        if(client->connect())
+        {
+            LOG_INFO("connect to server ok");
+        }
+
+        poller->start();
+        parser->start();
+        poller->wait();
+        parser->wait();
+    }
+    
+private:
+    std::shared_ptr<fly::net::Connection> m_server_connection;
+};
 
 int main()
 {
-    //init library
-    fly::init();
-
-    //init logger
-    fly::base::Logger::instance()->init(fly::base::DEBUG, "client", "./log/");
-    
-    //test logger
-    LOG_INFO("this is a msg to logger, I am %s, 1024 * 1024 = %d", "lichuan", 1024 * 1024);
-
-    std::shared_ptr<Poller> poller(new Poller(1));
-    std::shared_ptr<Parser> parser(new Parser(1));
-    std::shared_ptr<Connection> tcp_connection;
-    std::unique_ptr<Client> client(new Client(Addr("127.0.0.1", 8899),
-    [&](std::shared_ptr<Connection> connection)
-    {
-        tcp_connection = connection;
-        LOG_INFO("client connection %s:%d", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
-    }, [](std::shared_ptr<Message_Pack>){}, [](std::shared_ptr<Connection>){}, [](std::shared_ptr<Connection> connection)
-    {
-        LOG_INFO("connection from %s:%d be closed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
-    }, poller, parser));
-
-    if(client->connect())
-    {
-        LOG_INFO("connect to server ok");
-    }
-
-    poller->start();
-    parser->start();
-    poller->wait();
-    parser->wait();
+    Test_Client::instance()->main();
 }

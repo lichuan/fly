@@ -25,6 +25,7 @@
 #include "fly/net/acceptor.hpp"
 #include "fly/net/poller.hpp"
 #include "fly/net/parser.hpp"
+#include "fly/net/message_pack.hpp"
 
 namespace fly {
 namespace net {

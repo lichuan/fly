@@ -45,10 +45,10 @@ uint32 random_32()
 
 uint64 random_64()
 {
-    uint64 a = random_32();
-    uint64 b = random_32();
-
-    return (a << 32) + b;
+    static std::random_device rd;
+    static std::mt19937_64 mt(rd());
+    
+    return mt();
 }
 
 uint32 random_between(uint32 min, uint32 max)

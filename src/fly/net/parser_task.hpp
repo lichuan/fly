@@ -33,7 +33,7 @@ class Parser_Task : public fly::task::Task
 {
 public:
     Parser_Task(uint64 seq);
-    void run() override;
+    virtual void run() override;
     void push_connection(std::shared_ptr<Connection> connection);
     
 private:
