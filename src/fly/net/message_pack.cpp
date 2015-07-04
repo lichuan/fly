@@ -23,5 +23,31 @@
 
 namespace fly {
 namespace net {
+
+Message_Pack::Message_Pack(std::shared_ptr<Connection> connection)
+{
+    m_connection = connection;
+}
+
+rapidjson::Document& Message_Pack::doc()
+{
+    return m_doc;
+}
+
+uint32 Message_Pack::message_type()
+{
+    return m_message_type;
+}
+
+uint32 Message_Pack::message_cmd()
+{
+    return m_message_cmd;
+}
+
+const std::string& Message_Pack::raw_data()
+{
+    return m_raw_data;
+}
+
 }
 }

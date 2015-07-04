@@ -22,19 +22,33 @@
 #ifndef FLY__NET__MESSAGE_PACK
 #define FLY__NET__MESSAGE_PACK
 
+#include <memory>
 #include <rapidjson/rapidjson.h>
-#include "fly/net/connection.hpp"
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+#include "fly/base/common.hpp"
 
 namespace fly {
 namespace net {
+
+class Connection;
 
 class Message_Pack
 {
 public:
     Message_Pack(std::shared_ptr<Connection> connection);
+    rapidjson::Document& doc();
+    const std::string& raw_data();
+    uint32 message_type();
+    uint32 message_cmd();
     
 private:
+    rapidjson::Document m_doc;
     std::shared_ptr<Connection> m_connection;
+    std::string m_raw_data;
+    uint32 m_message_type;
+    uint32 m_message_cmd;
 };
 
 }

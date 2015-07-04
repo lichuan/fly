@@ -24,6 +24,7 @@
 
 #include <memory>
 #include "fly/net/addr.hpp"
+#include "fly/net/message_pack.hpp"
 #include "fly/net/message_chunk_queue.hpp"
 
 namespace fly {
@@ -47,7 +48,8 @@ public:
     ~Connection();
     uint64 id();
     void close();
-    void send(void *data, uint32 size);
+    void send(const void *data, uint32 size);
+    void send(rapidjson::Document &doc);
     const Addr& peer_addr();
     
 private:

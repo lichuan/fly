@@ -139,7 +139,7 @@ void Poller_Task::do_write(std::shared_ptr<Connection> connection)
         {
             LOG_FATAL("write return 0, it's impossible, in Poller_Task::run_in_loop");
         }
-                
+        
         if(num <= 0)
         {
             epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
@@ -156,6 +156,10 @@ void Poller_Task::do_write(std::shared_ptr<Connection> connection)
             send_queue.push_front(message_chunk);
 
             break;
+        }
+        else
+        {
+            delete message_chunk;
         }
     }
 }
