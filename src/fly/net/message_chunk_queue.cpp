@@ -38,6 +38,11 @@ void Message_Chunk_Queue::push_front(Message_Chunk *message_chunk)
     m_length += message_chunk->length();
 }
 
+uint32 Message_Chunk_Queue::length()
+{
+    return m_length;
+}
+
 Message_Chunk* Message_Chunk_Queue::pop()
 {
     std::lock_guard<std::mutex> guard(m_mutex);

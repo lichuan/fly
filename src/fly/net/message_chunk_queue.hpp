@@ -35,6 +35,7 @@ public:
     void push(Message_Chunk *message_chunk);    
     void push_front(Message_Chunk *message_chunk);
     Message_Chunk* pop();
+    uint32 length();
     
 private:
     std::deque<Message_Chunk*> m_queue;

@@ -32,6 +32,11 @@ public:
     void init(std::shared_ptr<fly::net::Connection> connection)
     {
         m_server_connection = connection;
+        rapidjson::Document doc;
+        doc.SetObject();
+        doc.AddMember("message_type", 9922, doc.GetAllocator());
+        doc.AddMember("message_cmd", 2223333, doc.GetAllocator());
+        m_server_connection->send(doc);
     }
     
     void dispatch(std::unique_ptr<fly::net::Message_Pack> connection)
@@ -70,7 +75,7 @@ public:
         {
             LOG_INFO("connect to server ok");
         }
-
+        
         poller->start();
         parser->start();
         poller->wait();

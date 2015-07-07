@@ -42,9 +42,10 @@ public:
         LOG_INFO("connection count: %u", m_connections.size());
     }
     
-    void dispatch(std::unique_ptr<fly::net::Message_Pack> connection)
+    void dispatch(std::unique_ptr<fly::net::Message_Pack> pack)
     {
         LOG_INFO("disaptch message");
+        LOG_INFO("message type: %u message cmd: %u", pack->message_type(), pack->message_cmd());
     }
     
     void close(std::shared_ptr<fly::net::Connection> connection)

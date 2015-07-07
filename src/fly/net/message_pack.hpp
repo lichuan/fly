@@ -36,6 +36,8 @@ class Connection;
 
 class Message_Pack
 {
+    friend class Connection;
+    
 public:
     Message_Pack(std::shared_ptr<Connection> connection);
     rapidjson::Document& doc();

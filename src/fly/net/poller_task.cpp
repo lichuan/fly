@@ -108,7 +108,7 @@ void Poller_Task::write_connection(std::shared_ptr<Connection> connection)
     m_write_queue.push(connection);
     uint64 data = 1;
     int32 num = write(m_write_event_fd, &data, sizeof(uint64));
-
+    
     if(num != sizeof(uint64))
     {
         LOG_FATAL("write m_write_event_fd failed in Poller_Task::write_connection");
@@ -119,12 +119,12 @@ void Poller_Task::do_write(std::shared_ptr<Connection> connection)
 {
     int32 fd = connection->m_fd;
     Message_Chunk_Queue &send_queue = connection->m_send_msg_queue;
-
+    
     while(Message_Chunk *message_chunk = send_queue.pop())
     {
         int32 message_length = message_chunk->length();
         int32 num = write(fd, message_chunk->read_ptr(), message_length);
-        
+
         if(num < 0)
         {
             if(errno == EAGAIN || errno == EWOULDBLOCK)
@@ -212,9 +212,9 @@ void Poller_Task::do_close()
 
 void Poller_Task::run_in_loop()
 {
-    struct epoll_event events[1024];
-    int32 fd_num = epoll_wait(m_fd, events, 1024, -1);
-
+    struct epoll_event events[2048];
+    int32 fd_num = epoll_wait(m_fd, events, 2048, -1);
+    
     if(fd_num < 0)
     {
         LOG_FATAL("epoll_wait failed in Poller_Task::run_in_loop");
@@ -253,7 +253,7 @@ void Poller_Task::run_in_loop()
                     Message_Chunk_Queue &recv_queue = connection->m_recv_msg_queue;
                     std::unique_ptr<Message_Chunk> message_chunk(new Message_Chunk(REQ_SIZE));
                     int32 num = read(fd, message_chunk->read_ptr(), REQ_SIZE);
-                
+
                     if(num < 0)
                     {
                         if(errno == EAGAIN || errno == EWOULDBLOCK)
@@ -275,7 +275,7 @@ void Poller_Task::run_in_loop()
                     message_chunk->write_ptr(num);
                     recv_queue.push(message_chunk.release());
                     connection->m_parser_task->push_connection(connection->shared_from_this());
-                
+                    
                     if(num < REQ_SIZE)
                     {
                         break;

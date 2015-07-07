@@ -56,6 +56,7 @@ private:
     void parse();
     int32 m_fd;
     uint64 m_id = 0;
+    uint32 m_cur_msg_length = 0;
     Addr m_peer_addr;
     std::atomic<bool> m_closed {false};
     Message_Chunk_Queue m_recv_msg_queue;
