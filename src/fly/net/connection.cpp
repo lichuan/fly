@@ -190,28 +190,28 @@ void Connection::parse()
                         break;
                     }
                     
-                    const rapidjson::Value &message_type = doc["msg_type"];
+                    const rapidjson::Value &msg_type = doc["msg_type"];
 
-                    if(!message_type.IsUint())
+                    if(!msg_type.IsUint())
                     {
                         break;
                     }
 
-                    message->m_type = message_type.GetUint();
+                    message->m_type = msg_type.GetUint();
 
                     if(!doc.HasMember("msg_cmd"))
                     {
                         break;
                     }
 
-                    const rapidjson::Value &message_cmd = doc["msg_cmd"];
+                    const rapidjson::Value &msg_cmd = doc["msg_cmd"];
 
-                    if(!message_cmd.IsUint())
+                    if(!msg_cmd.IsUint())
                     {
                         break;
                     }
 
-                    message->m_cmd = message_cmd.GetUint();
+                    message->m_cmd = msg_cmd.GetUint();
                     m_dispatch_cb(std::move(message));
                 }
                 
