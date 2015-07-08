@@ -19,42 +19,42 @@
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "fly/net/message_pack.hpp"
+#include "fly/net/message.hpp"
 
 namespace fly {
 namespace net {
 
-Message_Pack::Message_Pack(std::shared_ptr<Connection> connection)
+Message::Message(std::shared_ptr<Connection> connection)
 {
     m_connection = connection;
 }
 
-rapidjson::Document& Message_Pack::doc()
+rapidjson::Document& Message::doc()
 {
     return m_doc;
 }
 
-uint32 Message_Pack::message_type()
+uint32 Message::type()
 {
-    return m_message_type;
+    return m_type;
 }
 
-uint32 Message_Pack::message_cmd()
+uint32 Message::cmd()
 {
-    return m_message_cmd;
+    return m_cmd;
 }
 
-uint32 Message_Pack::message_length()
+uint32 Message::length()
 {
-    return m_message_length;
+    return m_length;
 }
 
-const std::string& Message_Pack::raw_data()
+const std::string& Message::raw_data()
 {
     return m_raw_data;
 }
 
-std::shared_ptr<Connection> Message_Pack::get_connection()
+std::shared_ptr<Connection> Message::get_connection()
 {
     return m_connection;
 }

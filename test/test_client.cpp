@@ -40,7 +40,7 @@ public:
         m_server_connection->send(doc);
     }
     
-    void dispatch(std::unique_ptr<fly::net::Message_Pack> connection)
+    void dispatch(std::unique_ptr<fly::net::Message> connection)
     {
         LOG_INFO("disaptch message");
     }

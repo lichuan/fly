@@ -25,7 +25,7 @@
 #include "fly/net/acceptor.hpp"
 #include "fly/net/poller.hpp"
 #include "fly/net/parser.hpp"
-#include "fly/net/message_pack.hpp"
+#include "fly/net/message.hpp"
 
 namespace fly {
 namespace net {
@@ -36,14 +36,14 @@ public:
     Server(const Addr &addr,
            std::function<bool(std::shared_ptr<Connection>)> allow_cb,
            std::function<void(std::shared_ptr<Connection>)> init_cb,
-           std::function<void(std::unique_ptr<Message_Pack>)> dispatch_cb,
+           std::function<void(std::unique_ptr<Message>)> dispatch_cb,
            std::function<void(std::shared_ptr<Connection>)> close_cb,
            std::function<void(std::shared_ptr<Connection>)> be_closed_cb,
            std::shared_ptr<Poller> poller, std::shared_ptr<Parser> parser);
     Server(const Addr &addr,
            std::function<bool(std::shared_ptr<Connection>)> allow_cb,
            std::function<void(std::shared_ptr<Connection>)> init_cb,
-           std::function<void(std::unique_ptr<Message_Pack>)> dispatch_cb,
+           std::function<void(std::unique_ptr<Message>)> dispatch_cb,
            std::function<void(std::shared_ptr<Connection>)> close_cb,
            std::function<void(std::shared_ptr<Connection>)> be_closed_cb,
            uint32 poller_num = 1, uint32 parser_num = 1);

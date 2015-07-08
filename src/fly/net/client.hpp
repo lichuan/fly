@@ -24,7 +24,7 @@
 
 #include "fly/net/poller.hpp"
 #include "fly/net/parser.hpp"
-#include "fly/net/message_pack.hpp"
+#include "fly/net/message.hpp"
 
 namespace fly {
 namespace net {
@@ -34,7 +34,7 @@ class Client
 public:
     Client(const Addr &addr,
            std::function<void(std::shared_ptr<Connection>)> init_cb,
-           std::function<void(std::unique_ptr<Message_Pack>)> dispatch_cb,
+           std::function<void(std::unique_ptr<Message>)> dispatch_cb,
            std::function<void(std::shared_ptr<Connection>)> close_cb,
            std::function<void(std::shared_ptr<Connection>)> be_closed_cb,
            std::shared_ptr<Poller> poller, std::shared_ptr<Parser> parser);
@@ -49,7 +49,7 @@ private:
     std::function<void(std::shared_ptr<Connection>)> m_close_cb;
     std::function<void(std::shared_ptr<Connection>)> m_be_closed_cb;
     std::function<void(std::shared_ptr<Connection>)> m_init_cb;
-    std::function<void(std::unique_ptr<Message_Pack>)> m_dispatch_cb;
+    std::function<void(std::unique_ptr<Message>)> m_dispatch_cb;
 };
 
 }

@@ -24,7 +24,7 @@
 
 #include <memory>
 #include "fly/net/addr.hpp"
-#include "fly/net/message_pack.hpp"
+#include "fly/net/message.hpp"
 #include "fly/net/message_chunk_queue.hpp"
 
 namespace fly {
@@ -33,7 +33,7 @@ namespace net {
 class Poller_Task;
 class Parser_Task;
 class Server;
-class Message_Pack;
+class Message;
 
 class Connection : public std::enable_shared_from_this<Connection>
 {
@@ -67,7 +67,7 @@ private:
     std::function<void(std::shared_ptr<Connection>)> m_close_cb;
     std::function<void(std::shared_ptr<Connection>)> m_be_closed_cb;
     std::function<void(std::shared_ptr<Connection>)> m_init_cb;
-    std::function<void(std::unique_ptr<Message_Pack>)> m_dispatch_cb;
+    std::function<void(std::unique_ptr<Message>)> m_dispatch_cb;
 };
 
 }

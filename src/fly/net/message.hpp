@@ -19,8 +19,8 @@
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef FLY__NET__MESSAGE_PACK
-#define FLY__NET__MESSAGE_PACK
+#ifndef FLY__NET__MESSAGE
+#define FLY__NET__MESSAGE
 
 #include <memory>
 #include <rapidjson/rapidjson.h>
@@ -34,26 +34,26 @@ namespace net {
 
 class Connection;
 
-class Message_Pack
+class Message
 {
     friend class Connection;
     
 public:
-    Message_Pack(std::shared_ptr<Connection> connection);
+    Message(std::shared_ptr<Connection> connection);
     rapidjson::Document& doc();
     const std::string& raw_data();
-    uint32 message_type();
-    uint32 message_cmd();
-    uint32 message_length();
+    uint32 type();
+    uint32 cmd();
+    uint32 length();
     std::shared_ptr<Connection> get_connection();
     
 private:
     rapidjson::Document m_doc;
     std::shared_ptr<Connection> m_connection;
     std::string m_raw_data;
-    uint32 m_message_length;
-    uint32 m_message_type;
-    uint32 m_message_cmd;
+    uint32 m_length;
+    uint32 m_type;
+    uint32 m_cmd;
 };
 
 }

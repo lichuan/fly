@@ -29,7 +29,7 @@ namespace net {
 Server::Server(const Addr &addr,
                std::function<bool(std::shared_ptr<Connection>)> allow_cb,
                std::function<void(std::shared_ptr<Connection>)> init_cb,
-               std::function<void(std::unique_ptr<Message_Pack>)> dispatch_cb,
+               std::function<void(std::unique_ptr<Message>)> dispatch_cb,
                std::function<void(std::shared_ptr<Connection>)> close_cb,
                std::function<void(std::shared_ptr<Connection>)> be_closed_cb,
                std::shared_ptr<Poller> poller, std::shared_ptr<Parser> parser)
@@ -60,7 +60,7 @@ Server::Server(const Addr &addr,
 Server::Server(const Addr &addr,
                std::function<bool(std::shared_ptr<Connection>)> allow_cb,
                std::function<void(std::shared_ptr<Connection>)> init_cb,
-               std::function<void(std::unique_ptr<Message_Pack>)> dispatch_cb,
+               std::function<void(std::unique_ptr<Message>)> dispatch_cb,
                std::function<void(std::shared_ptr<Connection>)> close_cb,
                std::function<void(std::shared_ptr<Connection>)> be_closed_cb,
                uint32 poller_num, uint32 parser_num)

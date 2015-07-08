@@ -177,11 +177,11 @@ void Connection::parse()
                     m_recv_msg_queue.push_front(message_chunk);
                 }
 
-                std::unique_ptr<Message_Pack> pack(new Message_Pack(shared_from_this()));
-                pack->m_raw_data.assign(data, m_cur_msg_length);
+                std::unique_ptr<Message> message(new Message(shared_from_this()));
+                message->m_raw_data.assign(data, m_cur_msg_length);
                 m_cur_msg_length = 0;
-                rapidjson::Document &doc = pack->doc();
-                doc.Parse(pack->m_raw_data.c_str());
+                rapidjson::Document &doc = message->doc();
+                doc.Parse(message->m_raw_data.c_str());
                 
                 if(!doc.HasParseError())
                 {
@@ -197,7 +197,7 @@ void Connection::parse()
                         break;
                     }
 
-                    pack->m_message_type = message_type.GetUint();
+                    message->m_type = message_type.GetUint();
 
                     if(!doc.HasMember("msg_cmd"))
                     {
@@ -211,8 +211,8 @@ void Connection::parse()
                         break;
                     }
 
-                    pack->m_message_cmd = message_cmd.GetUint();
-                    m_dispatch_cb(std::move(pack));
+                    message->m_cmd = message_cmd.GetUint();
+                    m_dispatch_cb(std::move(message));
                 }
                 
                 break;

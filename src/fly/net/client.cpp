@@ -32,7 +32,7 @@ namespace net {
 
 Client::Client(const Addr &addr,
            std::function<void(std::shared_ptr<Connection>)> init_cb,
-           std::function<void(std::unique_ptr<Message_Pack>)> dispatch_cb,
+           std::function<void(std::unique_ptr<Message>)> dispatch_cb,
            std::function<void(std::shared_ptr<Connection>)> close_cb,
            std::function<void(std::shared_ptr<Connection>)> be_closed_cb,
            std::shared_ptr<Poller> poller, std::shared_ptr<Parser> parser)

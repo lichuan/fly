@@ -42,11 +42,11 @@ public:
         LOG_INFO("connection count: %u", m_connections.size());
     }
     
-    void dispatch(std::unique_ptr<fly::net::Message_Pack> pack)
+    void dispatch(std::unique_ptr<fly::net::Message> message)
     {
-        std::shared_ptr<fly::net::Connection> connection = pack->get_connection();
+        std::shared_ptr<fly::net::Connection> connection = message->get_connection();
         const fly::net::Addr &addr = connection->peer_addr();
-        LOG_INFO("recv message from %s:%d raw_data: %s", addr.m_host.c_str(), addr.m_port, pack->raw_data().c_str());
+        LOG_INFO("recv message from %s:%d raw_data: %s", addr.m_host.c_str(), addr.m_port, message->raw_data().c_str());
     }
     
     void close(std::shared_ptr<fly::net::Connection> connection)
