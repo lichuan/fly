@@ -44,6 +44,7 @@ public:
     const std::string& raw_data();
     uint32 message_type();
     uint32 message_cmd();
+    std::shared_ptr<Connection> get_connection();
     
 private:
     rapidjson::Document m_doc;

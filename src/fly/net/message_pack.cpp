@@ -49,5 +49,10 @@ const std::string& Message_Pack::raw_data()
     return m_raw_data;
 }
 
+std::shared_ptr<Connection> Message_Pack::get_connection()
+{
+    return m_connection;
+}
+
 }
 }
