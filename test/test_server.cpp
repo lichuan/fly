@@ -44,8 +44,9 @@ public:
     
     void dispatch(std::unique_ptr<fly::net::Message_Pack> pack)
     {
-        LOG_INFO("disaptch message");
-        LOG_INFO("message type: %u message cmd: %u", pack->message_type(), pack->message_cmd());
+        std::shared_ptr<fly::net::Connection> connection = pack->get_connection();
+        const fly::net::Addr &addr = connection->peer_addr();
+        LOG_INFO("recv message from %s:%d raw_data: %s", addr.m_host.c_str(), addr.m_port, pack->raw_data().c_str());
     }
     
     void close(std::shared_ptr<fly::net::Connection> connection)

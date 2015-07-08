@@ -34,8 +34,9 @@ public:
         m_server_connection = connection;
         rapidjson::Document doc;
         doc.SetObject();
-        doc.AddMember("message_type", 9922, doc.GetAllocator());
-        doc.AddMember("message_cmd", 2223333, doc.GetAllocator());
+        rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
+        doc.AddMember("msg_type", 9922, allocator); 
+        doc.AddMember("msg_cmd", 2223333, allocator);
         m_server_connection->send(doc);
     }
     

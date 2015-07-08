@@ -44,12 +44,14 @@ public:
     const std::string& raw_data();
     uint32 message_type();
     uint32 message_cmd();
+    uint32 message_length();
     std::shared_ptr<Connection> get_connection();
     
 private:
     rapidjson::Document m_doc;
     std::shared_ptr<Connection> m_connection;
     std::string m_raw_data;
+    uint32 m_message_length;
     uint32 m_message_type;
     uint32 m_message_cmd;
 };

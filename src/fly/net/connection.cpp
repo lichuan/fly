@@ -185,12 +185,12 @@ void Connection::parse()
                 
                 if(!doc.HasParseError())
                 {
-                    if(!doc.HasMember("message_type"))
+                    if(!doc.HasMember("msg_type"))
                     {
                         break;
                     }
                     
-                    const rapidjson::Value &message_type = doc["message_type"];
+                    const rapidjson::Value &message_type = doc["msg_type"];
 
                     if(!message_type.IsUint())
                     {
@@ -199,12 +199,12 @@ void Connection::parse()
 
                     pack->m_message_type = message_type.GetUint();
 
-                    if(!doc.HasMember("message_cmd"))
+                    if(!doc.HasMember("msg_cmd"))
                     {
                         break;
                     }
 
-                    const rapidjson::Value &message_cmd = doc["message_cmd"];
+                    const rapidjson::Value &message_cmd = doc["msg_cmd"];
 
                     if(!message_cmd.IsUint())
                     {

@@ -44,6 +44,11 @@ uint32 Message_Pack::message_cmd()
     return m_message_cmd;
 }
 
+uint32 Message_Pack::message_length()
+{
+    return m_message_length;
+}
+
 const std::string& Message_Pack::raw_data()
 {
     return m_raw_data;
