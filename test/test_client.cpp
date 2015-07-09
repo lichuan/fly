@@ -31,13 +31,12 @@ class Test_Client : public fly::base::Singleton<Test_Client>
 public:
     void init(std::shared_ptr<fly::net::Connection> connection)
     {
-        m_server_connection = connection;
         rapidjson::Document doc;
         doc.SetObject();
         rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
         doc.AddMember("msg_type", 9922, allocator); 
         doc.AddMember("msg_cmd", 2223333, allocator);
-        m_server_connection->send(doc);
+        connection->send(doc);
     }
     
     void dispatch(std::unique_ptr<fly::net::Message> connection)
@@ -82,9 +81,6 @@ public:
         poller->wait();
         parser->wait();
     }
-    
-private:
-    std::shared_ptr<fly::net::Connection> m_server_connection;
 };
 
 int main()

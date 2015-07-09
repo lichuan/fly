@@ -59,6 +59,7 @@ private:
     uint32 m_cur_msg_length = 0;
     Addr m_peer_addr;
     std::atomic<bool> m_closed {false};
+    std::shared_ptr<Connection> m_self; //add ref
     Message_Chunk_Queue m_recv_msg_queue;
     Message_Chunk_Queue m_send_msg_queue;
     Poller_Task *m_poller_task = nullptr;

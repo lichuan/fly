@@ -88,6 +88,7 @@ void Poller_Task::register_connection(std::shared_ptr<Connection> connection)
     }
     
     connection->m_poller_task = this;
+    connection->m_self = connection;
     connection->m_init_cb(connection);
 }
 
@@ -144,6 +145,7 @@ void Poller_Task::do_write(std::shared_ptr<Connection> connection)
         {
             epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
             close(fd);
+            connection->m_self.reset();
             connection->m_closed.store(true, std::memory_order_relaxed);
             connection->m_be_closed_cb(connection);
             
@@ -204,6 +206,7 @@ void Poller_Task::do_close()
             int32 fd = connection->m_fd;
             epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
             close(fd);
+            connection->m_self.reset();
             connection->m_closed.store(true, std::memory_order_relaxed);
             connection->m_close_cb(connection);
         }
@@ -234,6 +237,7 @@ void Poller_Task::run_in_loop()
             close(fd);
             connection->m_closed.store(true, std::memory_order_relaxed);
             connection->m_be_closed_cb(connection->shared_from_this());
+            connection->m_self.reset();
         }
         else if(event & EPOLLIN)
         {
@@ -268,6 +272,7 @@ void Poller_Task::run_in_loop()
                         close(fd);
                         connection->m_closed.store(true, std::memory_order_relaxed);
                         connection->m_be_closed_cb(connection->shared_from_this());
+                        connection->m_self.reset();
 
                         break;
                     }
