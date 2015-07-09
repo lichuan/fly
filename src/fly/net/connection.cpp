@@ -137,17 +137,17 @@ void Connection::parse()
             break;
         }
 
-        const uint32 MAX_MSG_LEN = 65536;
+        const uint32 MAX_MSG_LEN = 102400;
         char data[MAX_MSG_LEN] = {0};
         remain_bytes = m_cur_msg_length;
         
         if(m_cur_msg_length > MAX_MSG_LEN / 2)
         {
-            LOG_ERROR("message length exceed half of MAX_MSG_LEN(65536)");
+            LOG_ERROR("message length exceed half of MAX_MSG_LEN(%d)", MAX_MSG_LEN);
 
             if(m_cur_msg_length > MAX_MSG_LEN)
             {
-                LOG_FATAL("message length exceed MAX_MSG_LEN");
+                LOG_FATAL("message length exceed MAX_MSG_LEN(%d)", MAX_MSG_LEN);
                 
                 break;
             }
