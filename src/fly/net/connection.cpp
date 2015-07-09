@@ -136,21 +136,22 @@ void Connection::parse()
         {
             break;
         }
-
+        
         const uint32 MAX_MSG_LEN = 102400;
-        char data[MAX_MSG_LEN] = {0};
+        char msg_buf[MAX_MSG_LEN] = {0};
+        char *data = msg_buf;
+        bool is_new_buf = false;
         remain_bytes = m_cur_msg_length;
         
-        if(m_cur_msg_length > MAX_MSG_LEN / 2)
+        if(m_cur_msg_length > MAX_MSG_LEN)
+        {
+            LOG_ERROR("message length exceed MAX_MSG_LEN(%d)", MAX_MSG_LEN);
+            data = new char[m_cur_msg_length];
+            is_new_buf = true;
+        }
+        else if(m_cur_msg_length > MAX_MSG_LEN / 2)
         {
             LOG_ERROR("message length exceed half of MAX_MSG_LEN(%d)", MAX_MSG_LEN);
-
-            if(m_cur_msg_length > MAX_MSG_LEN)
-            {
-                LOG_FATAL("message length exceed MAX_MSG_LEN(%d)", MAX_MSG_LEN);
-                
-                break;
-            }
         }
         
         while(auto *message_chunk = m_recv_msg_queue.pop())
@@ -180,6 +181,12 @@ void Connection::parse()
                 std::unique_ptr<Message> message(new Message(shared_from_this()));
                 message->m_raw_data.assign(data, m_cur_msg_length);
                 m_cur_msg_length = 0;
+
+                if(is_new_buf)
+                {
+                    delete[] data;
+                }
+                
                 rapidjson::Document &doc = message->doc();
                 doc.Parse(message->m_raw_data.c_str());
                 
