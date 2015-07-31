@@ -34,8 +34,6 @@ Parser::Parser(uint32 num)
         m_parser_tasks.push_back(parser_task);
         m_scheduler->schedule_task(parser_task);
     }
-
-    m_num = num;
 }
 
 void Parser::start()
@@ -55,7 +53,8 @@ void Parser::wait()
 
 void Parser::register_connection(std::shared_ptr<Connection> connection)
 {
-    connection->m_parser_task = m_parser_tasks[connection->id() % m_num];
+    static auto num = m_parser_tasks.size();
+    connection->m_parser_task = m_parser_tasks[connection->id() % num];
 }
 
 }

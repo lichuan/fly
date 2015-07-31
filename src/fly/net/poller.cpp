@@ -34,8 +34,6 @@ Poller::Poller(uint32 num)
         m_poller_tasks.push_back(poller_task);
         m_scheduler->schedule_task(poller_task);
     }
-    
-    m_num = num;
 }
 
 void Poller::start()
@@ -55,7 +53,8 @@ void Poller::wait()
 
 void Poller::register_connection(std::shared_ptr<Connection> connection)
 {
-    m_poller_tasks[connection->id() % m_num]->register_connection(connection);
+    static auto num = m_poller_tasks.size();
+    m_poller_tasks[connection->id() % num]->register_connection(connection);
 }
 
 }

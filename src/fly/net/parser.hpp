@@ -40,7 +40,6 @@ public:
 private:
     std::unique_ptr<fly::task::Scheduler> m_scheduler;
     std::vector<Parser_Task*> m_parser_tasks;
-    uint32 m_num;
 };
 
 }

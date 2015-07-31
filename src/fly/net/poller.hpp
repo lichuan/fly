@@ -38,7 +38,6 @@ public:
     void register_connection(std::shared_ptr<Connection> connection);
     
 private:
-    uint32 m_num;
     std::unique_ptr<fly::task::Scheduler> m_scheduler;
     std::vector<Poller_Task*> m_poller_tasks;
 };
