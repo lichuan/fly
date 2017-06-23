@@ -13,7 +13,7 @@
  *                                                                     *
  *   @author: lichuan                                                  *
  *   @qq: 308831759                                                    *
- *   @email: lichuan@lichuan.me                                        *
+ *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
  *   @date: 2015-06-22 18:22:00                                        *
  *                                                                     *
