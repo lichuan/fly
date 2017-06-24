@@ -25,11 +25,12 @@
 #include <mutex>
 #include <deque>
 #include <condition_variable>
+#include "fly/base/common.hpp"
 
 namespace fly {
 namespace base {
 
-template<typename T>
+template<typename T, uint32 MAX_SIZE = 1024>
 class Block_Queue
 {
 public:
@@ -38,27 +39,39 @@ public:
         std::unique_lock<std::mutex> locker(m_mutex);
         bool empty = m_queue.empty();
         m_queue.push_back(element);
-
+        
         if(empty)
         {
-            locker.unlock();
-            m_cond.notify_one();
+            m_cond_not_empty.notify_one();
+        }
+        else if(m_queue.size() >= MAX_SIZE)
+        {
+            m_full = true;
+            m_cond_not_full.wait(locker, [&]{return !m_full;});
         }
     }
     
     T pop()
     {
         std::unique_lock<std::mutex> locker(m_mutex);
-        m_cond.wait(locker, [&]{return !m_queue.empty();});
+        m_cond_not_empty.wait(locker, [&]{return !m_queue.empty();});
         T element = m_queue.front();
         m_queue.pop_front();
 
+        if(m_full && m_queue.size() < MAX_SIZE / 4)
+        {
+            m_full = false;
+            m_cond_not_full.notify_one();
+        }
+        
         return element;
     }
     
     std::deque<T> m_queue;
     std::mutex m_mutex;
-    std::condition_variable m_cond;
+    bool m_full = false;
+    std::condition_variable m_cond_not_empty;
+    std::condition_variable m_cond_not_full;
 };
 
 }

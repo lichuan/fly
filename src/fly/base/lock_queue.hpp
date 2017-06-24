@@ -23,7 +23,7 @@
 #define FLY__BASE__LOCK_QUEUE
 
 #include <mutex>
-#include <deque>
+#include <vector>
 
 namespace fly {
 namespace base {
@@ -38,23 +38,22 @@ public:
         m_queue.push_back(element);
     }
     
-    T pop()
+    bool pop(std::vector<T> &queue)
     {
         std::lock_guard<std::mutex> guard(m_mutex);
 
         if(m_queue.empty())
         {
-            return T();
+            return false;
         }
-        
-        T element = m_queue.front();
-        m_queue.pop_front();
-        
-        return element;
+
+        queue.swap(m_queue);
+
+        return true;
     }
     
 private:
-    std::deque<T> m_queue;
+    std::vector<T> m_queue;
     std::mutex m_mutex;
 };
 

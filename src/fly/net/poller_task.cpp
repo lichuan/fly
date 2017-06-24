@@ -174,15 +174,20 @@ void Poller_Task::do_write()
     if(num != sizeof(uint64))
     {
         LOG_FATAL("read m_write_event_fd failed in Poller_Task::do_write");
-
+        
         return;
     }
     
-    while(std::shared_ptr<Connection> connection = m_write_queue.pop())
+    std::vector<std::shared_ptr<Connection>> vec;
+
+    if(m_write_queue.pop(vec))
     {
-        if(!connection->m_closed.load(std::memory_order_relaxed))
+        for(auto &connection : vec)
         {
-            do_write(connection);
+            if(!connection->m_closed.load(std::memory_order_relaxed))
+            {
+                do_write(connection);
+            }
         }
     }
 }
@@ -198,17 +203,22 @@ void Poller_Task::do_close()
         
         return;
     }
-    
-    while(std::shared_ptr<Connection> connection = m_close_queue.pop())
+
+    std::vector<std::shared_ptr<Connection>> vec;
+
+    if(m_close_queue.pop(vec))
     {
-        if(!connection->m_closed.load(std::memory_order_relaxed))
+        for(auto &connection : vec)
         {
-            int32 fd = connection->m_fd;
-            epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
-            close(fd);
-            connection->m_self.reset();
-            connection->m_closed.store(true, std::memory_order_relaxed);
-            connection->m_close_cb(connection);
+            if(!connection->m_closed.load(std::memory_order_relaxed))
+            {
+                int32 fd = connection->m_fd;
+                epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
+                close(fd);
+                connection->m_self.reset();
+                connection->m_closed.store(true, std::memory_order_relaxed);
+                connection->m_close_cb(connection);
+            }
         }
     }
 }
