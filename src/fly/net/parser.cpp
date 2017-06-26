@@ -41,6 +41,10 @@ void Parser::start()
     m_scheduler->start();
 }
 
+void Parser::stop()
+{
+}
+
 void Parser::wait()
 {
     m_scheduler->wait();

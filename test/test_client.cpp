@@ -62,6 +62,10 @@ public:
         //init logger
         fly::base::Logger::instance()->init(fly::base::DEBUG, "client", "./log/");
         
+        int i = 5000;
+        while(i-- > 0)
+        {
+            
         std::shared_ptr<fly::net::Poller> poller(new fly::net::Poller(1));
         std::shared_ptr<fly::net::Parser> parser(new fly::net::Parser(1));
         std::unique_ptr<fly::net::Client> client(new fly::net::Client(fly::net::Addr("127.0.0.1", 8899),
@@ -78,8 +82,11 @@ public:
         
         poller->start();
         parser->start();
-        poller->wait();
-        parser->wait();
+        }
+        
+        // poller->wait();
+        // parser->wait();
+        
     }
 };
 

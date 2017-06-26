@@ -49,6 +49,7 @@ public:
            uint32 poller_num = 1, uint32 parser_num = 1);
     void wait();
     bool start();
+    void stop();
     
 private:
     std::unique_ptr<Acceptor> m_acceptor;

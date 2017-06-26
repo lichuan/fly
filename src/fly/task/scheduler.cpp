@@ -20,6 +20,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "fly/task/scheduler.hpp"
+#include "fly/task/stop_executor_task.hpp"
 
 namespace fly {
 namespace task {
@@ -37,6 +38,14 @@ void Scheduler::start()
     for(auto *executor : m_executors)
     {
         executor->start();
+    }
+}
+
+void Scheduler::stop()
+{
+    for(auto *executor : m_executors)
+    {
+        executor->add_task(new Stop_Executor_Task);
     }
 }
 

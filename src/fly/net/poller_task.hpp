@@ -37,6 +37,7 @@ public:
     virtual void run_in_loop() override;
     void close_connection(std::shared_ptr<Connection> connection);
     void write_connection(std::shared_ptr<Connection> connection);
+    void stop();
     
 private:
     void do_close();
@@ -45,8 +46,10 @@ private:
     int32 m_fd;
     int32 m_close_event_fd;
     int32 m_write_event_fd;
+    int32 m_stop_event_fd;
     std::unique_ptr<Connection> m_close_udata;
     std::unique_ptr<Connection> m_write_udata;
+    std::unique_ptr<Connection> m_stop_udata;
     fly::base::Lock_Queue<std::shared_ptr<Connection>> m_close_queue;
     fly::base::Lock_Queue<std::shared_ptr<Connection>> m_write_queue;
 };

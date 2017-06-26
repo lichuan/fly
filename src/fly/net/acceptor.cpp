@@ -20,6 +20,8 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <errno.h>
+#include <fcntl.h>
+#include <poll.h>
 #include <string.h>
 #include <sys/epoll.h>
 #include <sys/types.h>
@@ -78,22 +80,63 @@ bool Acceptor::start()
         
         return false;
     }
+
+    int32 flags = fcntl(listen_fd, F_GETFL, 0);
+
+    if(flags == -1)
+    {
+        LOG_FATAL("set listen fd to nonblock failed 1 in Acceptor::start, listen addr is %s:%d", m_listen_addr.m_host.c_str(), m_listen_addr.m_port);
+
+        return false;
+    }
+
+    flags |= O_NONBLOCK;
+
+    if(fcntl(listen_fd, F_SETFL, flags) == -1)
+    {
+        LOG_FATAL("set listen fd to nonblock failed 2 in Acceptor::start, listen addr is %s:%d", m_listen_addr.m_host.c_str(), m_listen_addr.m_port);
+        
+        return false;
+    }
     
     std::thread tmp([=]()
     {
+        struct pollfd fds;
+        fds.fd = listen_fd;
+        fds.events = POLLIN;
+
         while(true)
         {
+            int32 ret = poll(&fds, 1, 1000);
+            
+            if(ret < 0)
+            {
+                LOG_FATAL("poll listen fd return -1");
+
+                continue;
+            }
+
+            if(!m_running.load(std::memory_order_relaxed))
+            {
+                break;
+            }
+            
+            // timeout
+            if(ret == 0)
+            {
+                continue;
+            }
+
+            if(!(fds.revents & POLLIN))
+            {
+                LOG_FATAL("poll listen fd return revents not contains POLLIN");
+
+                continue;
+            }
+
             struct sockaddr_in client_addr;
             socklen_t length = sizeof(sockaddr_in);
             int32 client_fd = accept4(listen_fd, (sockaddr*)&client_addr, &length, SOCK_NONBLOCK);
-            
-            if(client_fd < 0)
-            {
-                LOG_FATAL("accept4 failed in Acceptor::start");
-                
-                continue;
-            }
-            
             char host[INET_ADDRSTRLEN];
             inet_ntop(AF_INET, &client_addr.sin_addr, host, INET_ADDRSTRLEN);
             uint16 port = ntohs(client_addr.sin_port);
@@ -105,6 +148,11 @@ bool Acceptor::start()
     m_thread = std::move(tmp);
 
     return true;
+}
+
+void Acceptor::stop()
+{
+    m_running.store(false, std::memory_order_relaxed);
 }
 
 void Acceptor::wait()

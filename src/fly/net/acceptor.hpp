@@ -34,10 +34,12 @@ class Acceptor
 public:
     Acceptor(const Addr &addr, std::function<void(std::shared_ptr<Connection>)> cb);
     bool start();
+    void stop();
     void wait();
     
 private:
     std::function<void(std::shared_ptr<Connection>)> m_cb;
+    std::atomic<bool> m_running {true};
     Addr m_listen_addr;
     std::thread m_thread;
 };

@@ -41,6 +41,10 @@ void Poller::start()
     m_scheduler->start();
 }
 
+void Poller::stop()
+{
+}
+
 void Poller::wait()
 {
     m_scheduler->wait();

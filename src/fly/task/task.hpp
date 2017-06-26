@@ -33,6 +33,7 @@ public:
     Task(uint64 seq);
     virtual ~Task() = default;
     virtual void run() = 0;
+    virtual bool stop_executor() {return false;}
     uint64 seq();
     void set_executor_id(uint32 id);
     

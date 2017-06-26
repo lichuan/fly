@@ -103,6 +103,21 @@ bool Server::start()
     return m_acceptor->start();
 }
 
+void Server::stop()
+{
+    m_acceptor->stop();
+
+    if(m_poller.unique())
+    {
+        m_poller->stop();
+    }
+    
+    if(m_parser.unique())
+    {
+        m_parser->stop();
+    }
+}
+
 void Server::wait()
 {
     m_acceptor->wait();

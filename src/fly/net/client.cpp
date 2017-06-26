@@ -65,7 +65,7 @@ bool Client::connect()
 
     if(::connect(fd, (sockaddr*)&server_addr, sizeof(server_addr)) < 0)
     {
-        LOG_FATAL("connect failed in Client::connect, server addr is %s:%d", m_addr.m_host.c_str(), m_addr.m_port);
+        LOG_FATAL("connect failed in Client::connect, server addr is %s:%d %s", m_addr.m_host.c_str(), m_addr.m_port, strerror(errno));
 
         return false;
     }

@@ -34,6 +34,7 @@ public:
     Scheduler(uint32 num);
     void schedule_task(Task *task);
     void start();
+    void stop();
     void wait();
     
 private:
