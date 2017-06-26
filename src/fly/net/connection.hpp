@@ -57,6 +57,7 @@ private:
     int32 m_fd;
     uint64 m_id = 0;
     uint32 m_cur_msg_length = 0;
+    bool m_stop_parse = false;
     Addr m_peer_addr;
     std::atomic<bool> m_closed {false};
     std::shared_ptr<Connection> m_self; //add ref

@@ -21,6 +21,7 @@
 
 #include <unistd.h>
 #include <unordered_map>
+#include <iostream>
 #include "fly/init.hpp"
 #include "fly/net/server.hpp"
 #include "fly/base/logger.hpp"
@@ -80,11 +81,24 @@ public:
                                                                       std::bind(&Test_Server::dispatch, this, _1),
                                                                       std::bind(&Test_Server::close, this, _1),
                                                                       std::bind(&Test_Server::be_closed, this, _1)));
-
+        
+        // std::thread thd([&]()
+        // {
+        //     std::string cmd;
+        //     std::cin >> cmd;
+        //     if(cmd == "stop")
+        //     {
+        //         server->stop();
+        //         std::cout << "stop finished." << std::endl;
+        //     }
+        // });
+        
         if(server->start())
         {
             LOG_INFO("start server ok!");
             server->wait();
+            //thd.join();
+            LOG_INFO("stop server ok!");
         }
         else
         {

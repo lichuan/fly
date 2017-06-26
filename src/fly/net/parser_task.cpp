@@ -37,6 +37,11 @@ void Parser_Task::run()
 {
     while(std::shared_ptr<Connection> connection = m_queue.pop())
     {
+        if(connection->m_stop_parse)
+        {
+            break;
+        }
+
         connection->parse();
     }
 }

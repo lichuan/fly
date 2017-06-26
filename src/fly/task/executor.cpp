@@ -32,7 +32,7 @@ void Executor::run()
 {
     while(auto *task = m_tasks.pop())
     {
-        bool stop_executor = task->stop_executor();
+        bool stop_executor = task->m_stop_executor;
         task->run();
         delete task;
 

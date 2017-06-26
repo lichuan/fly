@@ -45,7 +45,9 @@ void Scheduler::stop()
 {
     for(auto *executor : m_executors)
     {
-        executor->add_task(new Stop_Executor_Task);
+        auto task = new Task(0);
+        task->m_stop_executor = true;
+        executor->add_task(task);
     }
 }
 

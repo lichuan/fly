@@ -108,7 +108,7 @@ bool Acceptor::start()
         while(true)
         {
             int32 ret = poll(&fds, 1, 1000);
-            
+
             if(ret < 0)
             {
                 LOG_FATAL("poll listen fd return -1");

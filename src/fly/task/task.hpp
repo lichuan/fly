@@ -29,11 +29,13 @@ namespace task {
 
 class Task
 {
+    friend class Executor;
+    friend class Scheduler;
+    
 public:
     Task(uint64 seq);
     virtual ~Task() = default;
-    virtual void run() = 0;
-    virtual bool stop_executor() {return false;}
+    virtual void run() {}
     uint64 seq();
     void set_executor_id(uint32 id);
     
@@ -42,6 +44,7 @@ protected:
     
 private:
     uint64 m_seq;
+    bool m_stop_executor = false;
 };
 
 }

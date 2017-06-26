@@ -43,16 +43,19 @@ void Parser::start()
 
 void Parser::stop()
 {
+    for(auto parser_task : m_parser_tasks)
+    {
+        auto connection = std::make_shared<Connection>(-1, Addr("stop_parse", 0));
+        connection->m_stop_parse = true;
+        parser_task->push_connection(connection);
+    }
+
+    m_scheduler->stop();
 }
 
 void Parser::wait()
 {
     m_scheduler->wait();
-
-    for(auto parser_task : m_parser_tasks)
-    {
-        delete parser_task;
-    }
 }
 
 void Parser::register_connection(std::shared_ptr<Connection> connection)
