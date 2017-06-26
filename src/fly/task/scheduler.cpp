@@ -20,7 +20,6 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "fly/task/scheduler.hpp"
-#include "fly/task/stop_executor_task.hpp"
 
 namespace fly {
 namespace task {
