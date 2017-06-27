@@ -30,6 +30,8 @@ Scheduler::Scheduler(uint32 num)
     {
         m_executors.push_back(new Executor);
     }
+
+    m_executor_num = num;
 }
 
 void Scheduler::start()
@@ -62,16 +64,15 @@ void Scheduler::wait()
 void Scheduler::schedule_task(Task *task)
 {
     uint64 seq = task->seq();
-    static auto num = m_executors.size();
     auto i = 0;
     
     if(seq == 0) //select executor randomly
     {
-        i = fly::base::random_between(0, num - 1);
+        i = fly::base::random_between(0, m_executor_num - 1);
     }
     else //select executor by sequence number
     {
-        i = task->seq() % num;
+        i = task->seq() % m_executor_num;
     }
 
     auto *executor = m_executors[i];

@@ -63,7 +63,8 @@ public:
         fly::base::Logger::instance()->init(fly::base::DEBUG, "client", "./log/");
 
         std::shared_ptr<fly::net::Poller> poller(new fly::net::Poller(4));
-        std::shared_ptr<fly::net::Parser> parser(new fly::net::Parser(1));
+        std::shared_ptr<fly::net::Parser> parser(new fly::net::Parser(4));
+        
         poller->start();
         parser->start();
         
@@ -71,13 +72,13 @@ public:
         while(i-- > 0)
         {
             
-            std::unique_ptr<fly::net::Client> client(new fly::net::Client(fly::net::Addr("127.0.0.1", 8899),
+            std::unique_ptr<fly::net::Client> client(new fly::net::Client(fly::net::Addr("127.0.0.1", 8088),
                                                                           std::bind(&Test_Client::init, this, _1),
                                                                           std::bind(&Test_Client::dispatch, this, _1),
                                                                           std::bind(&Test_Client::close, this, _1),
                                                                           std::bind(&Test_Client::be_closed, this, _1),
                                                                           poller, parser));
-            if(client->connect(2000))
+            if(client->connect(100))
             {
                 LOG_INFO("connect to server ok");
             }

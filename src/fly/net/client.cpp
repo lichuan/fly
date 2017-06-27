@@ -54,7 +54,7 @@ bool Client::connect(int32 timeout)
     
     if(fd < 0)
     {
-        LOG_FATAL("socket failed in Client::connect");
+        LOG_FATAL("socket failed in Client::connect: %s", strerror(errno));
 
         return false;
     }
@@ -99,11 +99,11 @@ bool Client::connect(int32 timeout)
 
         if(ret <= 0)
         {
-            LOG_FATAL("connect failed, poll return <= 0");
+            LOG_FATAL("connect failed, poll return <= 0: %d", ret);
 
             return false;
         }
-
+        
         socklen_t len = sizeof(ret);
 
         if(getsockopt(fd, SOL_SOCKET, SO_ERROR, &ret, &len) < 0)

@@ -39,6 +39,7 @@ public:
     
 private:
     std::vector<Executor*> m_executors;
+    uint32 m_executor_num = 0;
 };
 
 }

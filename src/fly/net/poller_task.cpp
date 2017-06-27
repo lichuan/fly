@@ -98,7 +98,7 @@ void Poller_Task::register_connection(std::shared_ptr<Connection> connection)
     
     if(ret < 0)
     {
-        LOG_FATAL("epoll_ctl failed in Poller_Task::register_connection");
+        LOG_FATAL("epoll_ctl failed in Poller_Task::register_connection: fd %d %s", connection->m_fd, strerror(errno));
 
         return;
     }

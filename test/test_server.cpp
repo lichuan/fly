@@ -75,7 +75,7 @@ public:
         fly::base::Logger::instance()->init(fly::base::DEBUG, "server", "./log/");
         
         //test tcp server
-        std::unique_ptr<fly::net::Server> server(new fly::net::Server(fly::net::Addr("127.0.0.1", 8899),
+        std::unique_ptr<fly::net::Server> server(new fly::net::Server(fly::net::Addr("127.0.0.1", 8088),
                                                                       std::bind(&Test_Server::allow, this, _1),
                                                                       std::bind(&Test_Server::init, this, _1),
                                                                       std::bind(&Test_Server::dispatch, this, _1),

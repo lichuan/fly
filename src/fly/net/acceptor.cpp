@@ -24,6 +24,7 @@
 #include <poll.h>
 #include <string.h>
 #include <poll.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -137,6 +138,17 @@ bool Acceptor::start()
             struct sockaddr_in client_addr;
             socklen_t length = sizeof(sockaddr_in);
             int32 client_fd = accept4(listen_fd, (sockaddr*)&client_addr, &length, SOCK_NONBLOCK);
+
+            if(client_fd < 0)
+            {
+                LOG_FATAL("accept4 return < 0: %d %s", errno, strerror(errno));
+                
+                if(errno == EMFILE)
+                {
+                    sleep(1);
+                }
+            }
+            
             char host[INET_ADDRSTRLEN];
             inet_ntop(AF_INET, &client_addr.sin_addr, host, INET_ADDRSTRLEN);
             uint16 port = ntohs(client_addr.sin_port);
