@@ -21,8 +21,10 @@
 
 #include <string.h>
 #include <sys/types.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <poll.h>
 #include <netinet/in.h>
 #include "fly/net/client.hpp"
 #include "fly/base/logger.hpp"
@@ -46,13 +48,31 @@ Client::Client(const Addr &addr,
     m_parser = parser;
 }
 
-bool Client::connect()
+bool Client::connect(int32 timeout)
 {
     int32 fd = socket(AF_INET, SOCK_STREAM, 0);
     
     if(fd < 0)
     {
         LOG_FATAL("socket failed in Client::connect");
+
+        return false;
+    }
+
+    int32 flags = fcntl(fd, F_GETFL, 0);
+
+    if(flags == -1)
+    {
+        LOG_FATAL("set fd to nonblock failed 1 in Client::connect");
+
+        return false;
+    }
+
+    flags |= O_NONBLOCK;
+
+    if(fcntl(fd, F_SETFL, flags) == -1)
+    {
+        LOG_FATAL("set fd to nonblock failed 1 in Client::connect");
 
         return false;
     }
@@ -65,11 +85,42 @@ bool Client::connect()
 
     if(::connect(fd, (sockaddr*)&server_addr, sizeof(server_addr)) < 0)
     {
-        LOG_FATAL("connect failed in Client::connect, server addr is %s:%d %s", m_addr.m_host.c_str(), m_addr.m_port, strerror(errno));
+        if(errno != EINPROGRESS)
+        {        
+            LOG_FATAL("connect failed in Client::connect, server addr is %s:%d %s", m_addr.m_host.c_str(), m_addr.m_port, strerror(errno));
 
-        return false;
+            return false;
+        }
+
+        struct pollfd fds;
+        fds.fd = fd;
+        fds.events = POLLOUT;
+        int32 ret = poll(&fds, 1, timeout);
+
+        if(ret <= 0)
+        {
+            LOG_FATAL("connect failed, poll return <= 0");
+
+            return false;
+        }
+
+        socklen_t len = sizeof(ret);
+
+        if(getsockopt(fd, SOL_SOCKET, SO_ERROR, &ret, &len) < 0)
+        {
+            LOG_FATAL("connect failed, getsockopt return < 0");
+
+            return false;
+        }
+
+        if(ret != 0)
+        {
+            LOG_FATAL("connect failed, getsockopt error: %s", strerror(ret));
+
+            return false;
+        }
     }
-
+    
     std::shared_ptr<Connection> connection = std::make_shared<Connection>(fd, m_addr);
     m_id = connection->m_id_allocator.new_id();
     connection->m_id = m_id;

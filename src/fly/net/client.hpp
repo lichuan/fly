@@ -38,7 +38,7 @@ public:
            std::function<void(std::shared_ptr<Connection>)> close_cb,
            std::function<void(std::shared_ptr<Connection>)> be_closed_cb,
            std::shared_ptr<Poller> poller, std::shared_ptr<Parser> parser);
-    bool connect();
+    bool connect(int32 timeout = -1);
     uint64 id();
     
 private:

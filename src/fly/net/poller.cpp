@@ -28,7 +28,7 @@ Poller::Poller(uint32 num)
 {
     m_scheduler.reset(new fly::task::Scheduler(num));
     
-    for(uint32 i = 0; i < num; ++i)
+    for(uint32 i = 1; i <= num; ++i)
     {
         auto *poller_task = new Poller_Task(i);
         m_poller_tasks.push_back(poller_task);
