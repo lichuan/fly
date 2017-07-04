@@ -29,27 +29,28 @@
 namespace fly {
 namespace net {
 
+template<typename T>
 class Client
 {
 public:
     Client(const Addr &addr,
-           std::function<void(std::shared_ptr<Connection>)> init_cb,
-           std::function<void(std::unique_ptr<Message>)> dispatch_cb,
-           std::function<void(std::shared_ptr<Connection>)> close_cb,
-           std::function<void(std::shared_ptr<Connection>)> be_closed_cb,
-           std::shared_ptr<Poller> poller, std::shared_ptr<Parser> parser);
+           std::function<void(std::shared_ptr<Connection<T>>)> init_cb,
+           std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
+           std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
+           std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
+           std::shared_ptr<Poller<T>> poller, std::shared_ptr<Parser<T>> parser);
     bool connect(int32 timeout = -1);
     uint64 id();
     
 private:
     uint64 m_id;
     Addr m_addr;
-    std::shared_ptr<Poller> m_poller;
-    std::shared_ptr<Parser> m_parser;
-    std::function<void(std::shared_ptr<Connection>)> m_close_cb;
-    std::function<void(std::shared_ptr<Connection>)> m_be_closed_cb;
-    std::function<void(std::shared_ptr<Connection>)> m_init_cb;
-    std::function<void(std::unique_ptr<Message>)> m_dispatch_cb;
+    std::shared_ptr<Poller<T>> m_poller;
+    std::shared_ptr<Parser<T>> m_parser;
+    std::function<void(std::shared_ptr<Connection<T>>)> m_close_cb;
+    std::function<void(std::shared_ptr<Connection<T>>)> m_be_closed_cb;
+    std::function<void(std::shared_ptr<Connection<T>>)> m_init_cb;
+    std::function<void(std::unique_ptr<Message<T>>)> m_dispatch_cb;
 };
 
 }

@@ -29,15 +29,16 @@
 namespace fly {
 namespace net {
 
+template<typename T>
 class Parser_Task : public fly::task::Task
 {
 public:
     Parser_Task(uint64 seq);
     virtual void run() override;
-    void push_connection(std::shared_ptr<Connection> connection);
+    void push_connection(std::shared_ptr<Connection<T>> connection);
     
 private:
-    fly::base::Block_Queue<std::shared_ptr<Connection>> m_queue;
+    fly::base::Block_Queue<std::shared_ptr<Connection<T>>> m_queue;
 };
 
 }

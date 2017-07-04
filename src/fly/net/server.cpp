@@ -26,18 +26,22 @@
 namespace fly {
 namespace net {
 
-Server::Server(const Addr &addr,
-               std::function<bool(std::shared_ptr<Connection>)> allow_cb,
-               std::function<void(std::shared_ptr<Connection>)> init_cb,
-               std::function<void(std::unique_ptr<Message>)> dispatch_cb,
-               std::function<void(std::shared_ptr<Connection>)> close_cb,
-               std::function<void(std::shared_ptr<Connection>)> be_closed_cb,
-               std::shared_ptr<Poller> poller, std::shared_ptr<Parser> parser)
+template<typename T>
+class Connection;
+
+template<typename T>
+Server<T>::Server(const Addr &addr,
+               std::function<bool(std::shared_ptr<Connection<T>>)> allow_cb,
+               std::function<void(std::shared_ptr<Connection<T>>)> init_cb,
+               std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
+               std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
+               std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
+               std::shared_ptr<Poller<T>> poller, std::shared_ptr<Parser<T>> parser)
 {
     m_poller = poller;
     m_parser = parser;
     
-    m_acceptor.reset(new Acceptor(addr, [=](std::shared_ptr<Connection> connection)
+    m_acceptor.reset(new Acceptor<T>(addr, [=](std::shared_ptr<Connection<T>> connection)
     {
         if(allow_cb(connection))
         {
@@ -57,18 +61,19 @@ Server::Server(const Addr &addr,
     }));
 }
 
-Server::Server(const Addr &addr,
-               std::function<bool(std::shared_ptr<Connection>)> allow_cb,
-               std::function<void(std::shared_ptr<Connection>)> init_cb,
-               std::function<void(std::unique_ptr<Message>)> dispatch_cb,
-               std::function<void(std::shared_ptr<Connection>)> close_cb,
-               std::function<void(std::shared_ptr<Connection>)> be_closed_cb,
+template<typename T>
+Server<T>::Server(const Addr &addr,
+               std::function<bool(std::shared_ptr<Connection<T>>)> allow_cb,
+               std::function<void(std::shared_ptr<Connection<T>>)> init_cb,
+               std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
+               std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
+               std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
                uint32 poller_num, uint32 parser_num)
 {
-    m_poller.reset(new Poller(poller_num));
-    m_parser.reset(new Parser(parser_num));
+    m_poller.reset(new Poller<T>(poller_num));
+    m_parser.reset(new Parser<T>(parser_num));
 
-    m_acceptor.reset(new Acceptor(addr, [=](std::shared_ptr<Connection> connection)
+    m_acceptor.reset(new Acceptor<T>(addr, [=](std::shared_ptr<Connection<T>> connection)
     {
         if(allow_cb(connection))
         {
@@ -88,7 +93,8 @@ Server::Server(const Addr &addr,
     }));
 }
 
-bool Server::start()
+template<typename T>
+bool Server<T>::start()
 {
     if(m_poller.unique())
     {
@@ -103,7 +109,8 @@ bool Server::start()
     return m_acceptor->start();
 }
 
-void Server::stop()
+template<typename T>
+void Server<T>::stop()
 {
     m_acceptor->stop();
 
@@ -118,7 +125,8 @@ void Server::stop()
     }
 }
 
-void Server::wait()
+template<typename T>
+void Server<T>::wait()
 {
     m_acceptor->wait();
     
@@ -132,6 +140,10 @@ void Server::wait()
         m_parser->wait();
     }
 }
+
+template class Server<Json>;
+template class Server<Wsock>;
+template class Server<Proto>;
 
 }
 }

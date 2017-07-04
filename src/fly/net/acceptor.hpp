@@ -29,16 +29,17 @@
 namespace fly {
 namespace net {
 
+template<typename T>
 class Acceptor
 {
 public:
-    Acceptor(const Addr &addr, std::function<void(std::shared_ptr<Connection>)> cb);
+    Acceptor(const Addr &addr, std::function<void(std::shared_ptr<Connection<T>>)> cb);
     bool start();
     void stop();
     void wait();
     
 private:
-    std::function<void(std::shared_ptr<Connection>)> m_cb;
+    std::function<void(std::shared_ptr<Connection<T>>)> m_cb;
     std::atomic<bool> m_running {true};
     Addr m_listen_addr;
     std::thread m_thread;

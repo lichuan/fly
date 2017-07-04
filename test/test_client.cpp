@@ -25,11 +25,12 @@
 #include "fly/base/logger.hpp"
 
 using namespace std::placeholders;
+using fly::net::Json;
 
 class Test_Client : public fly::base::Singleton<Test_Client>
 {
 public:
-    void init(std::shared_ptr<fly::net::Connection> connection)
+    void init(std::shared_ptr<fly::net::Connection<Json>> connection)
     {
         rapidjson::Document doc;
         doc.SetObject();
@@ -39,17 +40,17 @@ public:
         connection->send(doc);
     }
     
-    void dispatch(std::unique_ptr<fly::net::Message> connection)
+    void dispatch(std::unique_ptr<fly::net::Message<Json>> connection)
     {
         LOG_INFO("disaptch message");
     }
     
-    void close(std::shared_ptr<fly::net::Connection> connection)
+    void close(std::shared_ptr<fly::net::Connection<Json>> connection)
     {
         LOG_INFO("close connection from %s:%d", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
     }
     
-    void be_closed(std::shared_ptr<fly::net::Connection> connection)
+    void be_closed(std::shared_ptr<fly::net::Connection<Json>> connection)
     {
         LOG_INFO("connection from %s:%d be closed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
     }
@@ -62,8 +63,8 @@ public:
         //init logger
         fly::base::Logger::instance()->init(fly::base::DEBUG, "client", "./log/");
 
-        std::shared_ptr<fly::net::Poller> poller(new fly::net::Poller(4));
-        std::shared_ptr<fly::net::Parser> parser(new fly::net::Parser(4));
+        std::shared_ptr<fly::net::Poller<Json>> poller(new fly::net::Poller<Json>(4));
+        std::shared_ptr<fly::net::Parser<Json>> parser(new fly::net::Parser<Json>(4));
         
         poller->start();
         parser->start();
@@ -72,7 +73,7 @@ public:
         while(i-- > 0)
         {
             
-            std::unique_ptr<fly::net::Client> client(new fly::net::Client(fly::net::Addr("127.0.0.1", 8088),
+            std::unique_ptr<fly::net::Client<Json>> client(new fly::net::Client<Json>(fly::net::Addr("127.0.0.1", 8088),
                                                                           std::bind(&Test_Client::init, this, _1),
                                                                           std::bind(&Test_Client::dispatch, this, _1),
                                                                           std::bind(&Test_Client::close, this, _1),

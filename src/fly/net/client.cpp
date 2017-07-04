@@ -22,6 +22,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <poll.h>
@@ -32,12 +33,13 @@
 namespace fly {
 namespace net {
 
-Client::Client(const Addr &addr,
-           std::function<void(std::shared_ptr<Connection>)> init_cb,
-           std::function<void(std::unique_ptr<Message>)> dispatch_cb,
-           std::function<void(std::shared_ptr<Connection>)> close_cb,
-           std::function<void(std::shared_ptr<Connection>)> be_closed_cb,
-           std::shared_ptr<Poller> poller, std::shared_ptr<Parser> parser)
+template<typename T>
+Client<T>::Client(const Addr &addr,
+           std::function<void(std::shared_ptr<Connection<T>>)> init_cb,
+           std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
+           std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
+           std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
+           std::shared_ptr<Poller<T>> poller, std::shared_ptr<Parser<T>> parser)
 {
     m_addr = addr;
     m_init_cb = init_cb;
@@ -48,7 +50,8 @@ Client::Client(const Addr &addr,
     m_parser = parser;
 }
 
-bool Client::connect(int32 timeout)
+template<typename T>
+bool Client<T>::connect(int32 timeout)
 {
     int32 fd = socket(AF_INET, SOCK_STREAM, 0);
     
@@ -63,8 +66,9 @@ bool Client::connect(int32 timeout)
 
     if(flags == -1)
     {
-        LOG_FATAL("set fd to nonblock failed 1 in Client::connect");
-
+        LOG_FATAL("fcntl F_GETFL failed in Client::connect");
+        close(fd);
+        
         return false;
     }
 
@@ -72,8 +76,9 @@ bool Client::connect(int32 timeout)
 
     if(fcntl(fd, F_SETFL, flags) == -1)
     {
-        LOG_FATAL("set fd to nonblock failed 1 in Client::connect");
-
+        LOG_FATAL("fnctl F_SETFL O_NONBLOCK failed in Client::connect");
+        close(fd);
+        
         return false;
     }
     
@@ -88,7 +93,8 @@ bool Client::connect(int32 timeout)
         if(errno != EINPROGRESS)
         {        
             LOG_FATAL("connect failed in Client::connect, server addr is %s:%d %s", m_addr.m_host.c_str(), m_addr.m_port, strerror(errno));
-
+            close(fd);
+            
             return false;
         }
 
@@ -100,7 +106,8 @@ bool Client::connect(int32 timeout)
         if(ret <= 0)
         {
             LOG_FATAL("connect failed, poll return <= 0: %d", ret);
-
+            close(fd);
+            
             return false;
         }
         
@@ -109,19 +116,21 @@ bool Client::connect(int32 timeout)
         if(getsockopt(fd, SOL_SOCKET, SO_ERROR, &ret, &len) < 0)
         {
             LOG_FATAL("connect failed, getsockopt return < 0");
-
+            close(fd);
+            
             return false;
         }
 
         if(ret != 0)
         {
             LOG_FATAL("connect failed, getsockopt error: %s", strerror(ret));
-
+            close(fd);
+            
             return false;
         }
     }
     
-    std::shared_ptr<Connection> connection = std::make_shared<Connection>(fd, m_addr);
+    std::shared_ptr<Connection<T>> connection = std::make_shared<Connection<T>>(fd, m_addr);
     m_id = connection->m_id_allocator.new_id();
     connection->m_id = m_id;
     connection->m_init_cb = m_init_cb;
@@ -134,10 +143,15 @@ bool Client::connect(int32 timeout)
     return true;
 }
 
-uint64 Client::id()
+template<typename T>
+uint64 Client<T>::id()
 {
     return m_id;
 }
+
+template class Client<Json>;
+template class Client<Wsock>;
+template class Client<Proto>;
 
 }
 }

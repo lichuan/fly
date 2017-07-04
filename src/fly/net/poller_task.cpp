@@ -29,7 +29,8 @@
 namespace fly {
 namespace net {
 
-Poller_Task::Poller_Task(uint64 seq) : Loop_Task(seq)
+template<typename T>
+Poller_Task<T>::Poller_Task(uint64 seq) : Loop_Task(seq)
 {
     m_fd = epoll_create1(0);
     
@@ -60,7 +61,7 @@ Poller_Task::Poller_Task(uint64 seq) : Loop_Task(seq)
     }
 
     struct epoll_event event;
-    m_close_udata.reset(new Connection(m_close_event_fd, Addr("close_event", 0)));
+    m_close_udata.reset(new Connection<T>(m_close_event_fd, Addr("close_event", 0)));
     event.data.ptr = m_close_udata.get();
     event.events = EPOLLIN;
     int32 ret = epoll_ctl(m_fd, EPOLL_CTL_ADD, m_close_event_fd, &event);
@@ -70,7 +71,7 @@ Poller_Task::Poller_Task(uint64 seq) : Loop_Task(seq)
         LOG_FATAL("close event epoll_ctl failed in Poller_Task::Poller_Task");
     }
 
-    m_write_udata.reset(new Connection(m_write_event_fd, Addr("write_event", 0)));
+    m_write_udata.reset(new Connection<T>(m_write_event_fd, Addr("write_event", 0)));
     event.data.ptr = m_write_udata.get();
     ret = epoll_ctl(m_fd, EPOLL_CTL_ADD, m_write_event_fd, &event);
     
@@ -79,7 +80,7 @@ Poller_Task::Poller_Task(uint64 seq) : Loop_Task(seq)
         LOG_FATAL("write event epoll_ctl failed in Poller_Task::Poller_Task");
     }
     
-    m_stop_udata.reset(new Connection(m_stop_event_fd, Addr("stop_event", 0)));
+    m_stop_udata.reset(new Connection<T>(m_stop_event_fd, Addr("stop_event", 0)));
     event.data.ptr = m_stop_udata.get();
     ret = epoll_ctl(m_fd, EPOLL_CTL_ADD, m_stop_event_fd, &event);
     
@@ -89,7 +90,8 @@ Poller_Task::Poller_Task(uint64 seq) : Loop_Task(seq)
     }
 }
 
-void Poller_Task::register_connection(std::shared_ptr<Connection> connection)
+template<typename T>
+void Poller_Task<T>::register_connection(std::shared_ptr<Connection<T>> connection)
 {
     struct epoll_event event;
     event.data.ptr = connection.get();
@@ -108,7 +110,8 @@ void Poller_Task::register_connection(std::shared_ptr<Connection> connection)
     connection->m_init_cb(connection);
 }
 
-void Poller_Task::close_connection(std::shared_ptr<Connection> connection)
+template<typename T>
+void Poller_Task<T>::close_connection(std::shared_ptr<Connection<T>> connection)
 {
     m_close_queue.push(connection);
     uint64 data = 1;
@@ -120,7 +123,8 @@ void Poller_Task::close_connection(std::shared_ptr<Connection> connection)
     }
 }
 
-void Poller_Task::stop()
+template<typename T>
+void Poller_Task<T>::stop()
 {
     uint64 data = 1;
     int32 num = write(m_stop_event_fd, &data, sizeof(uint64));
@@ -131,7 +135,8 @@ void Poller_Task::stop()
     }
 }
 
-void Poller_Task::write_connection(std::shared_ptr<Connection> connection)
+template<typename T>
+void Poller_Task<T>::write_connection(std::shared_ptr<Connection<T>> connection)
 {
     m_write_queue.push(connection);
     uint64 data = 1;
@@ -143,7 +148,8 @@ void Poller_Task::write_connection(std::shared_ptr<Connection> connection)
     }
 }
 
-void Poller_Task::do_write(std::shared_ptr<Connection> connection)
+template<typename T>
+void Poller_Task<T>::do_write(std::shared_ptr<Connection<T>> connection)
 {
     int32 fd = connection->m_fd;
     Message_Chunk_Queue &send_queue = connection->m_send_msg_queue;
@@ -193,7 +199,8 @@ void Poller_Task::do_write(std::shared_ptr<Connection> connection)
     }
 }
 
-void Poller_Task::do_write()
+template<typename T>
+void Poller_Task<T>::do_write()
 {
     uint64 data = 0;
     int32 num = read(m_write_event_fd, &data, sizeof(uint64));
@@ -205,7 +212,7 @@ void Poller_Task::do_write()
         return;
     }
     
-    std::vector<std::shared_ptr<Connection>> vec;
+    std::vector<std::shared_ptr<Connection<T>>> vec;
 
     if(m_write_queue.pop(vec))
     {
@@ -219,7 +226,8 @@ void Poller_Task::do_write()
     }
 }
 
-void Poller_Task::do_close()
+template<typename T>
+void Poller_Task<T>::do_close()
 {
     uint64 data = 0;
     int32 num = read(m_close_event_fd, &data, sizeof(uint64));
@@ -231,7 +239,7 @@ void Poller_Task::do_close()
         return;
     }
 
-    std::vector<std::shared_ptr<Connection>> vec;
+    std::vector<std::shared_ptr<Connection<T>>> vec;
 
     if(m_close_queue.pop(vec))
     {
@@ -250,7 +258,8 @@ void Poller_Task::do_close()
     }
 }
 
-void Poller_Task::run_in_loop()
+template<typename T>
+void Poller_Task<T>::run_in_loop()
 {
     struct epoll_event events[2048];
     int32 fd_num = epoll_wait(m_fd, events, 2048, -1);
@@ -264,7 +273,7 @@ void Poller_Task::run_in_loop()
     
     for(auto i = 0; i < fd_num; ++i)
     {
-        Connection *connection = static_cast<Connection*>(events[i].data.ptr);
+        Connection<T> *connection = static_cast<Connection<T>*>(events[i].data.ptr);
         int32 fd = connection->m_fd;
         uint32 event = events[i].events;
         
@@ -338,5 +347,9 @@ void Poller_Task::run_in_loop()
     }
 }
 
+template class Poller_Task<Json>;
+template class Poller_Task<Wsock>;
+template class Poller_Task<Proto>;
+    
 }
 }

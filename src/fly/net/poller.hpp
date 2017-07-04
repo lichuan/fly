@@ -29,6 +29,7 @@
 namespace fly {
 namespace net {
 
+template<typename T>
 class Poller
 {
 public:
@@ -36,11 +37,12 @@ public:
     void wait();
     void start();
     void stop();
-    void register_connection(std::shared_ptr<Connection> connection);
+    void register_connection(std::shared_ptr<Connection<T>> connection);
     
 private:
     std::unique_ptr<fly::task::Scheduler> m_scheduler;
-    std::vector<Poller_Task*> m_poller_tasks;
+    std::vector<Poller_Task<T>*> m_poller_tasks;
+    uint32 m_poller_task_num = 0;
 };
 
 }

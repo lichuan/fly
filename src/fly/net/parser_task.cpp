@@ -24,18 +24,21 @@
 namespace fly {
 namespace net {
 
-Parser_Task::Parser_Task(uint64 seq) : Task(seq)
+template<typename T>
+Parser_Task<T>::Parser_Task(uint64 seq) : Task(seq)
 {
 }
 
-void Parser_Task::push_connection(std::shared_ptr<Connection> connection)
+template<typename T>
+void Parser_Task<T>::push_connection(std::shared_ptr<Connection<T>> connection)
 {
     m_queue.push(connection);
 }
 
-void Parser_Task::run()
+template<typename T>
+void Parser_Task<T>::run()
 {
-    while(std::shared_ptr<Connection> connection = m_queue.pop())
+    while(std::shared_ptr<Connection<T>> connection = m_queue.pop())
     {
         if(connection->m_stop_parse)
         {
@@ -45,6 +48,10 @@ void Parser_Task::run()
         connection->parse();
     }
 }
+
+template class Parser_Task<Json>;
+template class Parser_Task<Wsock>;
+template class Parser_Task<Proto>;
 
 }
 }

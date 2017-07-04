@@ -24,24 +24,28 @@
 namespace fly {
 namespace net {
 
-Poller::Poller(uint32 num)
+template<typename T>
+Poller<T>::Poller(uint32 num)
 {
     m_scheduler.reset(new fly::task::Scheduler(num));
+    m_poller_task_num = num;
     
     for(uint32 i = 1; i <= num; ++i)
     {
-        auto *poller_task = new Poller_Task(i);
+        auto *poller_task = new Poller_Task<T>(i);
         m_poller_tasks.push_back(poller_task);
         m_scheduler->schedule_task(poller_task);
     }
 }
 
-void Poller::start()
+template<typename T>
+void Poller<T>::start()
 {
     m_scheduler->start();
 }
 
-void Poller::stop()
+template<typename T>
+void Poller<T>::stop()
 {
     for(auto poll_task : m_poller_tasks)
     {
@@ -51,16 +55,21 @@ void Poller::stop()
     m_scheduler->stop();
 }
 
-void Poller::wait()
+template<typename T>
+void Poller<T>::wait()
 {
     m_scheduler->wait();
 }
 
-void Poller::register_connection(std::shared_ptr<Connection> connection)
+template<typename T>
+void Poller<T>::register_connection(std::shared_ptr<Connection<T>> connection)
 {
-    static auto num = m_poller_tasks.size();
-    m_poller_tasks[connection->id() % num]->register_connection(connection);
+    m_poller_tasks[connection->id() % m_poller_task_num]->register_connection(connection);
 }
+
+template class Poller<Json>;
+template class Poller<Wsock>;
+template class Poller<Proto>;
 
 }
 }

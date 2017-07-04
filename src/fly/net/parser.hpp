@@ -29,6 +29,7 @@
 namespace fly {
 namespace net {
 
+template<typename T>
 class Parser
 {
 public:
@@ -36,11 +37,12 @@ public:
     void wait();
     void start();
     void stop();
-    void register_connection(std::shared_ptr<Connection> connection);
+    void register_connection(std::shared_ptr<Connection<T>> connection);
     
 private:
     std::unique_ptr<fly::task::Scheduler> m_scheduler;
-    std::vector<Parser_Task*> m_parser_tasks;
+    std::vector<Parser_Task<T>*> m_parser_tasks;
+    uint32 m_parser_task_num = 0;
 };
 
 }

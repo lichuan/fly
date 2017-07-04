@@ -35,13 +35,15 @@
 namespace fly {
 namespace net {
 
-Acceptor::Acceptor(const Addr &addr, std::function<void(std::shared_ptr<Connection>)> cb)
+template<typename T>
+Acceptor<T>::Acceptor(const Addr &addr, std::function<void(std::shared_ptr<Connection<T>>)> cb)
 {
     m_listen_addr = addr;
     m_cb = cb;
 }
 
-bool Acceptor::start()
+template<typename T>
+bool Acceptor<T>::start()
 {
     int32 listen_fd = socket(AF_INET, SOCK_STREAM, 0);
     
@@ -99,7 +101,7 @@ bool Acceptor::start()
         
         return false;
     }
-    
+
     std::thread tmp([=]()
     {
         struct pollfd fds;
@@ -147,30 +149,38 @@ bool Acceptor::start()
                 {
                     sleep(1);
                 }
+
+                continue;
             }
             
             char host[INET_ADDRSTRLEN];
             inet_ntop(AF_INET, &client_addr.sin_addr, host, INET_ADDRSTRLEN);
             uint16 port = ntohs(client_addr.sin_port);
             LOG_INFO("new connection from %s:%d arrived", host, port);
-            m_cb(std::make_shared<Connection>(client_fd, Addr(host, port)));
+            m_cb(std::make_shared<Connection<T>>(client_fd, Addr(host, port)));
         }
     });
-    
-    m_thread = std::move(tmp);
 
+    m_thread = std::move(tmp);
+    
     return true;
 }
 
-void Acceptor::stop()
+template<typename T>
+void Acceptor<T>::stop()
 {
     m_running.store(false, std::memory_order_relaxed);
 }
 
-void Acceptor::wait()
+template<typename T>
+void Acceptor<T>::wait()
 {
     m_thread.join();
 }
+
+template class Acceptor<Json>;
+template class Acceptor<Wsock>;
+template class Acceptor<Proto>;
 
 }
 }
