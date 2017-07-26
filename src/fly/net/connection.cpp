@@ -26,6 +26,11 @@
 #include "fly/net/poller_task.hpp"
 #include "fly/base/logger.hpp"
 
+extern "C"
+{
+#include "sha1.h"
+}
+
 namespace fly {
 namespace net {
 
@@ -232,6 +237,11 @@ void Connection<Json>::parse()
 //Wsock
 fly::base::ID_Allocator Connection<Wsock>::m_id_allocator;
 
+namespace
+{
+    thread_local SHA1_CTX sha1_ctx;
+}
+
 Connection<Wsock>::~Connection()
 {
     while(auto *message_chunk = m_recv_msg_queue.pop())
@@ -266,13 +276,30 @@ void Connection<Wsock>::send(rapidjson::Document &doc)
 
 void Connection<Wsock>::send(const void *data, uint32 size)
 {
-    Message_Chunk *message_chunk = new Message_Chunk(size + sizeof(uint32));
-    uint32 *uint32_ptr = (uint32*)message_chunk->read_ptr();
-    *uint32_ptr = htonl(size);
-    memcpy(message_chunk->read_ptr() + sizeof(uint32), data, size);
-    message_chunk->write_ptr(size + sizeof(uint32));
+    
+    // Message_Chunk *message_chunk = new Message_Chunk(size + sizeof(uint32));
+    // uint32 *uint32_ptr = (uint32*)message_chunk->read_ptr();
+    // *uint32_ptr = htonl(size);
+    // memcpy(message_chunk->read_ptr() + sizeof(uint32), data, size);
+    // message_chunk->write_ptr(size + sizeof(uint32));
+    // m_send_msg_queue.push(message_chunk);
+    // m_poller_task->write_connection(shared_from_this());
+    Message_Chunk *message_chunk = new Message_Chunk(256);
+    char *out_buf = message_chunk->read_ptr();
+    memcpy(out_buf, "HTTP/1.1 200 OK\r\n", 17);
+    out_buf += 17;
+    memcpy(out_buf, "Content-Type:text/plain\r\n", 25);
+    out_buf += 25;
+    
+    // memcpy(out_buf, "Connection:close\r\n", 18);
+    // out_buf += 18;
+    
+    memcpy(out_buf, "Content-Length:2\r\n\r\nok", 22);
+    
+    message_chunk->write_ptr(64);
     m_send_msg_queue.push(message_chunk);
     m_poller_task->write_connection(shared_from_this());
+    //LOG_INFO("out_buf send out...................");
 }
 
 void Connection<Wsock>::close()
@@ -287,8 +314,64 @@ const Addr& Connection<Wsock>::peer_addr()
 
 void Connection<Wsock>::parse()
 {
+    if(m_handshake_phase)
+    {
+        std::string req;
+
+        while(auto *message_chunk = m_recv_msg_queue.pop())
+        {
+            req += message_chunk->read_ptr();
+        }
+
+        uint32 len = req.length();
+
+        //too short for wsock
+        if(len < 100)
+        {
+            return;
+        }
+
+        if(req[len-4] != '\r' || req[len - 3] != '\n' || req[len - 2] != '\r' || req[len - 1] != '\n')
+        {
+            return;
+        }
+
+        std::string::size_type key_pos = req.find("Sec-WebSocket-Key: ");
+
+        if(key_pos == std::string::npos)
+        {
+            close();
+            
+            return;
+        }
+
+        std::string key_str = req.substr(key_pos + 19, (req.find("\r\n", key_pos + 19) - (key_pos + 19)));
+        std::string rsp = "HTTP/1.1 101 Switching Protocols\r\n";
+        rsp += "Connection: Upgrade\r\n";
+        rsp += "Upgrade: websocket\r\n";
+        rsp += "Sec-Websocket-Accept: ";
+        const static std::string wsock_magic_key("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+        std::string server_key = key_str + wsock_magic_key;
+        static thread_local bool sha1_inited = false;
+        
+        if(!sha1_inited)
+        {
+            sha1_inited = true;
+            sha1_init(&sha1_ctx);
+        }
+    }
+    
+    return;
+    
     while(true)
     {
+        auto *message_chunk = m_recv_msg_queue.pop();
+        LOG_INFO("recv from client: %s", message_chunk->read_ptr());
+        
+        //send(nullptr, 333);c
+
+        return;
+
         char *msg_length_buf = (char*)(&m_cur_msg_length);
         uint32 remain_bytes = sizeof(uint32);
         
@@ -489,6 +572,11 @@ void Connection<Proto>::parse()
 {
     while(true)
     {
+        auto *message_chunk = m_recv_msg_queue.pop();
+        LOG_INFO("recv http length: %d", message_chunk->length());
+        LOG_INFO("recv http: %s", message_chunk->read_ptr());
+        return;
+        
         char *msg_length_buf = (char*)(&m_cur_msg_length);
         uint32 remain_bytes = sizeof(uint32);
         

@@ -35,7 +35,7 @@ namespace net {
 //websocket
 class Wsock {};
 
-//custom json protocol
+//json
 class Json {};
 
 //google protobuf
