@@ -51,6 +51,7 @@ class Message;
 template<typename T>
 class Connection {};
 
+//json protocol
 template<>
 class Connection<Json> : public std::enable_shared_from_this<Connection<Json>>
 {
@@ -89,6 +90,7 @@ private:
     std::function<void(std::unique_ptr<Message<Json>>)> m_dispatch_cb;
 };
 
+//websocket protocol
 template<>
 class Connection<Wsock> : public std::enable_shared_from_this<Connection<Wsock>>
 {
@@ -129,6 +131,7 @@ private:
     std::function<void(std::unique_ptr<Message<Wsock>>)> m_dispatch_cb;
 };
 
+//google protobuf protocol (unimplemented !!!)
 template<>
 class Connection<Proto> : public std::enable_shared_from_this<Connection<Proto>>
 {

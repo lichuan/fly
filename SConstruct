@@ -8,7 +8,7 @@ def get_static_library_name(node):
 def get_shared_library_name(node):
     return os.path.basename(str(node)[:-2])[3:-3]
 
-env = Environment(CCFLAGS='-fpermissive -g -pthread -std=c++11', LINKFLAGS='-pthread -Wl,--start-group',
+env = Environment(CCFLAGS='-fpermissive -g -O2 -pthread -std=c++11', LINKFLAGS='-pthread -Wl,--start-group',
 CPPPATH=["#src", "#depend/rapidjson/include", "#depend/crypto-algorithms"])
 env_crypto = env.Clone(CCFLAGS='-g -O2 -Wall')
 Export("env_crypto")
