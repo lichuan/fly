@@ -61,6 +61,7 @@ private:
     std::atomic<uint64> m_id {1};
 };
 
+void crash_me();
 uint32 random_between(uint32 min, uint32 max);
 uint32 random_32();
 uint64 random_64();

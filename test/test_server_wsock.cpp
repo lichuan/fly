@@ -49,6 +49,14 @@ public:
         std::shared_ptr<fly::net::Connection<Wsock>> connection = message->get_connection();
         const fly::net::Addr &addr = connection->peer_addr();
         LOG_INFO("recv message from %s:%d raw_data: %s", addr.m_host.c_str(), addr.m_port, message->raw_data().c_str());
+        std::string data = "";
+
+        for(auto i = 0; i < 10; ++i)
+        {
+            data += "1234567890";
+        }
+
+        connection->send(data.c_str(), data.length());
     }
     
     void close(std::shared_ptr<fly::net::Connection<Wsock>> connection)

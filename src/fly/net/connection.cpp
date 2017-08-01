@@ -293,52 +293,47 @@ void Connection<Wsock>::send_raw(const void *data, uint32 size)
 void Connection<Wsock>::send(const void *data, uint32 size)
 {
     //assemble websocket packet
-    uint8 extra_bytes = 0;
-    uint8 len = 0;
+    char *buf, *p_data;
+    Message_Chunk *message_chunk;
     
     if(size > 0xffff)
     {
-        len = 127;
-        extra_bytes = 8;
+        message_chunk = new Message_Chunk(size + 10);
+        message_chunk->write_ptr(size + 10);
+        buf = message_chunk->read_ptr();
+        buf[1] = 127;
+        uint64 *p_length = (uint64*)(buf + 2);
+        *p_length = htonll(size);
+        p_data = buf + 10;
     }
     else if(size > 125)
     {
-        len = 126;
-        extra_bytes = 2;
+        message_chunk = new Message_Chunk(size + 4);
+        message_chunk->write_ptr(size + 4);
+        buf = message_chunk->read_ptr();
+        buf[1] = 126;
+        uint16 *p_length = (uint16*)(buf + 2);
+        *p_length = htons(size);
+        p_data = buf + 4;
     }
     else
     {
-        len = size;
+        message_chunk = new Message_Chunk(size + 2);
+        message_chunk->write_ptr(size + 2);
+        buf = message_chunk->read_ptr();
+        buf[1] = size;
+        p_data = buf + 2;
     }
-
-    uint32 total_length = size + 2 + extra_bytes;
-    Message_Chunk *message_chunk = new Message_Chunk(total_length);
-    char *buf = message_chunk->read_ptr();
-    buf[0] = 0x81;
-    buf[1] = len;
-    char *p_data = buf + 2;
     
-    if(extra_bytes == 2)
-    {
-        uint16 *p_length = (uint16*)(buf + 2);
-        *p_length = htons(size);
-        p_data += 2;
-    }
-    else if(extra_bytes == 8)
-    {
-        uint64 *p_length = (uint64*)(buf + 2);
-        *p_length = htonll(size);
-        p_data += 8;
-    }
-
+    buf[0] = 0x81;
     memcpy(p_data, data, size);
-    message_chunk->write_ptr(total_length);
     m_send_msg_queue.push(message_chunk);
     m_poller_task->write_connection(shared_from_this());
 }
 
 void Connection<Wsock>::close()
 {
+    //base::crash_me();
     m_poller_task->close_connection(shared_from_this());
 }
 
@@ -433,7 +428,7 @@ void Connection<Wsock>::parse()
         m_handshake_phase = false;
         return;
     }
-    
+
     while(true)
     {
         if(m_cur_msg_length != 0)

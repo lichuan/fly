@@ -79,6 +79,12 @@ uint64 random_64()
     return mt();
 }
 
+void crash_me()
+{
+    uint32 *p = NULL;
+    *p = 1234567;
+}
+
 uint32 random_between(uint32 min, uint32 max)
 {
     if(min == max)
