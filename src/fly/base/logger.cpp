@@ -121,6 +121,7 @@ void Logger::_log(uint32 year, uint32 month, uint32 day, const char *format, ...
     vfprintf(stdout, format, args);
     va_end(args);
     /******************* for debug ******************/
+    
 }
 
 }

@@ -105,6 +105,7 @@ public:
     ~Connection();
     uint64 id();
     void close();
+    void send_raw(const void *data, uint32 size);
     void send(const void *data, uint32 size);
     void send(rapidjson::Document &doc);
     const Addr& peer_addr();
