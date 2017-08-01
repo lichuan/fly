@@ -8,7 +8,8 @@ def get_static_library_name(node):
 def get_shared_library_name(node):
     return os.path.basename(str(node)[:-2])[3:-3]
 
-env = Environment(CCFLAGS='-g -O2 -Wall -std=c++11', LINKFLAGS='-Wl,--start-group', CPPPATH=["#src", "#depend/rapidjson/include", "#depend/crypto-algorithms"])
+env = Environment(CCFLAGS='-fpermissive -g -pthread -std=c++11', LINKFLAGS='-pthread -Wl,--start-group',
+CPPPATH=["#src", "#depend/rapidjson/include", "#depend/crypto-algorithms"])
 env_crypto = env.Clone(CCFLAGS='-g -O2 -Wall')
 Export("env_crypto")
 crypto_algorithms = SConscript("depend/crypto-algorithms/SConscript", variant_dir="build/crypto-algorithms", duplicate=0)

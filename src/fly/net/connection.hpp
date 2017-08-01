@@ -111,7 +111,8 @@ private:
     void parse();
     int32 m_fd;
     uint64 m_id = 0;
-    uint32 m_cur_msg_length = 0;
+    uint8 m_cur_msg_length = 0;
+    uint64 m_cur_msg_length_1 = 0;
     bool m_stop_parse = false;
     bool m_handshake_phase = true;
     Addr m_peer_addr;

@@ -25,6 +25,34 @@
 namespace fly {
 namespace base {
 
+Scope_CB::Scope_CB(std::function<void()> cb0, std::function<void()> cb1, std::function<void()> cb2, std::function<void()> cb3, \
+                   std::function<void()> cb4, std::function<void()> cb5, std::function<void()> cb6, std::function<void()> cb7)
+{
+    m_cbs[0] = cb0;
+    m_cbs[1] = cb1;
+    m_cbs[2] = cb2;
+    m_cbs[3] = cb3;
+    m_cbs[4] = cb4;
+    m_cbs[5] = cb5;
+    m_cbs[6] = cb6;
+    m_cbs[7] = cb7;
+}
+
+Scope_CB::~Scope_CB()
+{
+    m_cbs[m_index]();
+}
+
+void Scope_CB::set_cur_cb(uint8 index)
+{
+    if(index > 7)
+    {
+        return;
+    }
+
+    m_index = index;
+}
+
 uint64 ID_Allocator::new_id()
 {
     if(m_id.load(std::memory_order_relaxed) >= 18446744073709551615UL)

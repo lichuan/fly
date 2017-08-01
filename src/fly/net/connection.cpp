@@ -25,14 +25,26 @@
 #include "fly/net/connection.hpp"
 #include "fly/net/poller_task.hpp"
 #include "fly/base/logger.hpp"
+#include <thread>
 
 extern "C"
 {
 #include "sha1.h"
+#include "base64.h"
 }
 
 namespace fly {
 namespace net {
+
+uint64 htonll(uint64 n)
+{
+    return (((uint64)htonl(n)) << 32) | htonl(n >> 32);
+}
+
+uint64 ntohll(uint64 n)
+{
+    return (((uint64)ntohl(n)) << 32) | ntohl(n >> 32);
+}
 
 //Json
 fly::base::ID_Allocator Connection<Json>::m_id_allocator;
@@ -237,11 +249,6 @@ void Connection<Json>::parse()
 //Wsock
 fly::base::ID_Allocator Connection<Wsock>::m_id_allocator;
 
-namespace
-{
-    thread_local SHA1_CTX sha1_ctx;
-}
-
 Connection<Wsock>::~Connection()
 {
     while(auto *message_chunk = m_recv_msg_queue.pop())
@@ -276,30 +283,11 @@ void Connection<Wsock>::send(rapidjson::Document &doc)
 
 void Connection<Wsock>::send(const void *data, uint32 size)
 {
-    
-    // Message_Chunk *message_chunk = new Message_Chunk(size + sizeof(uint32));
-    // uint32 *uint32_ptr = (uint32*)message_chunk->read_ptr();
-    // *uint32_ptr = htonl(size);
-    // memcpy(message_chunk->read_ptr() + sizeof(uint32), data, size);
-    // message_chunk->write_ptr(size + sizeof(uint32));
-    // m_send_msg_queue.push(message_chunk);
-    // m_poller_task->write_connection(shared_from_this());
-    Message_Chunk *message_chunk = new Message_Chunk(256);
-    char *out_buf = message_chunk->read_ptr();
-    memcpy(out_buf, "HTTP/1.1 200 OK\r\n", 17);
-    out_buf += 17;
-    memcpy(out_buf, "Content-Type:text/plain\r\n", 25);
-    out_buf += 25;
-    
-    // memcpy(out_buf, "Connection:close\r\n", 18);
-    // out_buf += 18;
-    
-    memcpy(out_buf, "Content-Length:2\r\n\r\nok", 22);
-    
-    message_chunk->write_ptr(64);
+    Message_Chunk *message_chunk = new Message_Chunk(size);
+    memcpy(message_chunk->read_ptr(), data, size);
+    message_chunk->write_ptr(size);
     m_send_msg_queue.push(message_chunk);
     m_poller_task->write_connection(shared_from_this());
-    //LOG_INFO("out_buf send out...................");
 }
 
 void Connection<Wsock>::close()
@@ -317,16 +305,48 @@ void Connection<Wsock>::parse()
     if(m_handshake_phase)
     {
         std::string req;
+        std::deque<Message_Chunk*> chunks;
+        fly::base::Scope_CB scope_cb(
+            [&chunks, this]
+            {
+                while(true)
+                {
+                    if(chunks.empty())
+                    {
+                        break;
+                    }
+                    
+                    auto *message_chunk = chunks.front();
+                    chunks.pop_front();
+                    m_recv_msg_queue.push_front(message_chunk);
+                }
+            },
+            [&chunks, this]
+            {
+                while(true)
+                {
+                    if(chunks.empty())
+                    {
+                        break;
+                    }
 
+                    auto *message_chunk = chunks.front();
+                    chunks.pop_front();
+                    delete message_chunk;
+                }
+            });
+        
         while(auto *message_chunk = m_recv_msg_queue.pop())
         {
-            req += message_chunk->read_ptr();
+            char *chunk_ptr = message_chunk->read_ptr();
+            req += chunk_ptr;
+            chunks.push_front(message_chunk);
         }
-
+        
         uint32 len = req.length();
-
-        //too short for wsock
-        if(len < 100)
+        
+        //too short for wsock handshake packet
+        if(len < 80)
         {
             return;
         }
@@ -335,13 +355,13 @@ void Connection<Wsock>::parse()
         {
             return;
         }
-
+        
         std::string::size_type key_pos = req.find("Sec-WebSocket-Key: ");
+        scope_cb.set_cur_cb(1);
 
         if(key_pos == std::string::npos)
         {
             close();
-            
             return;
         }
 
@@ -349,55 +369,255 @@ void Connection<Wsock>::parse()
         std::string rsp = "HTTP/1.1 101 Switching Protocols\r\n";
         rsp += "Connection: Upgrade\r\n";
         rsp += "Upgrade: websocket\r\n";
-        rsp += "Sec-Websocket-Accept: ";
+        //rsp += "Sec-WebSocket-Protocol: sub-protocol\r\n";
+        rsp += "Sec-WebSocket-Accept: ";
         const static std::string wsock_magic_key("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
         std::string server_key = key_str + wsock_magic_key;
-        static thread_local bool sha1_inited = false;
-        
-        if(!sha1_inited)
-        {
-            sha1_inited = true;
-            sha1_init(&sha1_ctx);
-        }
+        SHA1_CTX sha1_ctx;
+        sha1_init(&sha1_ctx);
+        sha1_update(&sha1_ctx, server_key.c_str(), server_key.length());
+        char sha1_buf[20] = {0};
+        sha1_final(&sha1_ctx, sha1_buf);
+        char base64_buf[32] = {0};
+        base64_encode(sha1_buf, base64_buf, 20, 0);
+        rsp += base64_buf;
+        rsp += "\r\n\r\n";
+        send(rsp.c_str(), rsp.length());
+        m_handshake_phase = false;
+        return;
     }
-    
-    return;
     
     while(true)
     {
-        auto *message_chunk = m_recv_msg_queue.pop();
-        LOG_INFO("recv from client: %s", message_chunk->read_ptr());
-        
-        //send(nullptr, 333);c
-
-        return;
-
-        char *msg_length_buf = (char*)(&m_cur_msg_length);
-        uint32 remain_bytes = sizeof(uint32);
-        
         if(m_cur_msg_length != 0)
         {
+            if(m_cur_msg_length_1 != 0)
+            {
+                goto after_parse_length_1;
+            }
+            
             goto after_parse_length;
         }
         
-        if(m_recv_msg_queue.length() < sizeof(uint32))
+        if(m_recv_msg_queue.length() < 2)
         {
-            break;
+            return;
+        }
+
+        {
+            char buf[2] = {0};
+            auto *message_chunk = m_recv_msg_queue.pop();
+
+            if(message_chunk->length() >= 2)
+            {
+                memcpy(buf, message_chunk->read_ptr(), 2);
+                message_chunk->read_ptr(2);
+            }
+            else
+            {
+                memcpy(buf, message_chunk->read_ptr(), 1);
+                delete message_chunk;
+                message_chunk = m_recv_msg_queue.pop();
+                memcpy(buf, message_chunk->read_ptr(), 1);
+                message_chunk->read_ptr(1);
+            }
+
+            if(message_chunk->length() == 0)
+            {
+                delete message_chunk;
+            }
+            else
+            {
+                m_recv_msg_queue.push_front(message_chunk);
+            }
+
+            uint8 fin = buf[0] >> 7;
+
+            if(fin == 0)
+            {
+                close();
+                return;
+            }
+
+            if((buf[0] & 0x70) != 0)
+            {
+                close();
+                return;
+            }
+        
+            uint8 op_code = buf[0] & 0x0f;
+
+            if(op_code == 0x01) //text frame
+            {
+            }
+            else if(op_code == 0x08) //close
+            {
+                LOG_WARN("recv websocket close protocol");
+                close();
+                return;
+            }
+            else if(op_code == 0x09) //ping
+            {
+                LOG_WARN("recv websocket ping protocol");
+                close();
+                return; 
+            }
+            else if(op_code == 0x0a) //pong
+            {
+                LOG_WARN("recv websocket pong protocol");
+                close();
+                return;
+            }
+            else
+            {
+                LOG_WARN("recv websocket other protocol");
+                close();
+                return;
+            }
+
+            if(buf[1] & 0x80 == 0)
+            {
+                close();
+                return;
+            }
+        
+            m_cur_msg_length = buf[1] & 0x7f;
+
+            if(m_cur_msg_length == 0)
+            {
+                close();
+                return;
+            }
         }
         
+    after_parse_length:
+        if(m_cur_msg_length == 126)
+        {
+            if(m_recv_msg_queue.length() < 2)
+            {
+                return;
+            }
+            else
+            {
+                uint16 msg_length = 0;
+                auto *message_chunk = m_recv_msg_queue.pop();
+
+                if(message_chunk->length() >= 2)
+                {
+                    memcpy(&msg_length, message_chunk->read_ptr(), 2);
+                    message_chunk->read_ptr(2);
+                }
+                else
+                {
+                    memcpy(&msg_length, message_chunk->read_ptr(), 1);
+                    delete message_chunk;
+                    message_chunk = m_recv_msg_queue.pop();
+                    memcpy(&msg_length, message_chunk->read_ptr(), 1);
+                    message_chunk->read_ptr(1);
+                }
+
+                if(message_chunk->length() == 0)
+                {
+                    delete message_chunk;
+                }
+                else
+                {
+                    m_recv_msg_queue.push_front(message_chunk);
+                }
+                
+                m_cur_msg_length_1 = ntohs(msg_length);
+
+                if(m_cur_msg_length_1 == 0)
+                {
+                    close();
+                    return;
+                }
+            }
+        }
+        else if(m_cur_msg_length == 127)
+        {
+            if(m_recv_msg_queue.length() < 8)
+            {
+                return;
+            }
+            else
+            {
+                uint64 msg_length = 0;
+                uint32 remain_bytes = 8;
+                char *msg_length_buf = (char*)(&msg_length);
+                
+                while(auto *message_chunk = m_recv_msg_queue.pop())
+                {
+                    uint32 length = message_chunk->length();
+            
+                    if(length < remain_bytes)
+                    {
+                        memcpy(msg_length_buf + sizeof(uint64) - remain_bytes, message_chunk->read_ptr(), length);
+                        remain_bytes -= length;
+                        delete message_chunk;
+                    }
+                    else
+                    {
+                        memcpy(msg_length_buf + sizeof(uint64) - remain_bytes, message_chunk->read_ptr(), remain_bytes);
+
+                        if(length == remain_bytes)
+                        {
+                            delete message_chunk;
+                        }
+                        else
+                        {
+                            message_chunk->read_ptr(remain_bytes);
+                            m_recv_msg_queue.push_front(message_chunk);
+                        }
+                
+                        break;
+                    }
+                }
+
+                m_cur_msg_length_1 = ntohll(msg_length);
+                
+                if(m_cur_msg_length_1 == 0)
+                {
+                    close();
+                    return;
+                }
+            }
+        }
+        
+    after_parse_length_1:
+        uint64 msg_length = 0;
+
+        if(m_cur_msg_length < 126)
+        {
+            msg_length = m_cur_msg_length;
+        }
+        else
+        {
+            msg_length = m_cur_msg_length_1;
+        }
+
+        //4 bytes mask
+        if(m_recv_msg_queue.length() < msg_length + 4)
+        {
+            return;
+        }
+
+        char mask_keys[4] = {0};
+        uint32 remain_bytes = 4;
+
         while(auto *message_chunk = m_recv_msg_queue.pop())
         {
             uint32 length = message_chunk->length();
             
             if(length < remain_bytes)
             {
-                memcpy(msg_length_buf + sizeof(uint32) - remain_bytes, message_chunk->read_ptr(), length);
+                memcpy(mask_keys + 4 - remain_bytes, message_chunk->read_ptr(), length);
                 remain_bytes -= length;
                 delete message_chunk;
             }
             else
             {
-                memcpy(msg_length_buf + sizeof(uint32) - remain_bytes, message_chunk->read_ptr(), remain_bytes);
+                memcpy(mask_keys + 4 - remain_bytes, message_chunk->read_ptr(), remain_bytes);
 
                 if(length == remain_bytes)
                 {
@@ -413,29 +633,21 @@ void Connection<Wsock>::parse()
             }
         }
         
-        m_cur_msg_length = ntohl(m_cur_msg_length);
-        
-    after_parse_length:
-        if(m_recv_msg_queue.length() < m_cur_msg_length)
-        {
-            break;
-        }
-        
         const uint32 MAX_MSG_LEN = 102400;
         char msg_buf[MAX_MSG_LEN] = {0};
         char *data = msg_buf;
         bool is_new_buf = false;
-        remain_bytes = m_cur_msg_length;
+        remain_bytes = msg_length;
         
-        if(m_cur_msg_length > MAX_MSG_LEN)
+        if(msg_length > MAX_MSG_LEN)
         {
-            LOG_ERROR("message length exceed MAX_MSG_LEN(%d)", MAX_MSG_LEN);
-            data = new char[m_cur_msg_length];
+            LOG_WARN("message length exceed MAX_MSG_LEN(%d)", MAX_MSG_LEN);
+            data = new char[msg_length];
             is_new_buf = true;
         }
-        else if(m_cur_msg_length > MAX_MSG_LEN / 2)
+        else if(msg_length > MAX_MSG_LEN / 2)
         {
-            LOG_ERROR("message length exceed half of MAX_MSG_LEN(%d)", MAX_MSG_LEN);
+            LOG_WARN("message length exceed half of MAX_MSG_LEN(%d)", MAX_MSG_LEN);
         }
         
         while(auto *message_chunk = m_recv_msg_queue.pop())
@@ -444,13 +656,13 @@ void Connection<Wsock>::parse()
 
             if(length < remain_bytes)
             {
-                memcpy(data + m_cur_msg_length - remain_bytes, message_chunk->read_ptr(), length);
+                memcpy(data + msg_length - remain_bytes, message_chunk->read_ptr(), length);
                 remain_bytes -= length;
                 delete message_chunk;
             }
             else
             {
-                memcpy(data + m_cur_msg_length - remain_bytes, message_chunk->read_ptr(), remain_bytes);
+                memcpy(data + msg_length - remain_bytes, message_chunk->read_ptr(), remain_bytes);
 
                 if(length == remain_bytes)
                 {
@@ -462,53 +674,70 @@ void Connection<Wsock>::parse()
                     m_recv_msg_queue.push_front(message_chunk);
                 }
 
-                std::unique_ptr<Message<Wsock>> message(new Message<Wsock>(shared_from_this()));
-                message->m_raw_data.assign(data, m_cur_msg_length);
-                m_cur_msg_length = 0;
-
-                if(is_new_buf)
-                {
-                    delete[] data;
-                }
-                
-                rapidjson::Document &doc = message->doc();
-                doc.Parse(message->m_raw_data.c_str());
-                
-                if(!doc.HasParseError())
-                {
-                    if(!doc.HasMember("msg_type"))
-                    {
-                        break;
-                    }
-                    
-                    const rapidjson::Value &msg_type = doc["msg_type"];
-
-                    if(!msg_type.IsUint())
-                    {
-                        break;
-                    }
-
-                    message->m_type = msg_type.GetUint();
-
-                    if(!doc.HasMember("msg_cmd"))
-                    {
-                        break;
-                    }
-
-                    const rapidjson::Value &msg_cmd = doc["msg_cmd"];
-
-                    if(!msg_cmd.IsUint())
-                    {
-                        break;
-                    }
-
-                    message->m_cmd = msg_cmd.GetUint();
-                    m_dispatch_cb(std::move(message));
-                }
-                
                 break;
             }
         }
+
+        for(auto i = 0; i < msg_length; ++i)
+        {
+            data[i] = data[i] ^ mask_keys[i % 4];
+        }
+
+        std::unique_ptr<Message<Wsock>> message(new Message<Wsock>(shared_from_this()));
+        message->m_raw_data.assign(data, msg_length);
+        msg_length = 0;
+
+        if(is_new_buf)
+        {
+            delete[] data;
+        }
+                
+        rapidjson::Document &doc = message->doc();
+        doc.Parse(message->m_raw_data.c_str());
+                
+        if(doc.HasParseError())
+        {
+            LOG_ERROR("websocket parse json failed");
+            close();
+            return;
+        }
+
+        if(!doc.HasMember("msg_type"))
+        {
+            LOG_ERROR("websocket parse msg_type failed");
+            close();
+            return;
+        }
+                    
+        const rapidjson::Value &msg_type = doc["msg_type"];
+
+        if(!msg_type.IsUint())
+        {
+            close();
+            return;
+        }
+
+        message->m_type = msg_type.GetUint();
+
+        if(!doc.HasMember("msg_cmd"))
+        {
+            LOG_ERROR("websocket parse msg_cmd failed");
+            close();
+            return;
+        }
+        
+        const rapidjson::Value &msg_cmd = doc["msg_cmd"];
+
+        if(!msg_cmd.IsUint())
+        {
+            close();
+            return;
+        }
+        
+        message->m_cmd = msg_cmd.GetUint();
+        m_dispatch_cb(std::move(message));
+        m_cur_msg_length = 0;
+        m_cur_msg_length_1 = 0;
     }
 }
 
