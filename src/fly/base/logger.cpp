@@ -39,6 +39,7 @@ void Logger::init(LOG_LEVEL level, const std::string &app, const std::string &pa
     m_year.store(1900 + tm.tm_year, std::memory_order_relaxed);
     m_month.store(1 + tm.tm_mon, std::memory_order_relaxed); 
     m_day.store(tm.tm_mday, std::memory_order_relaxed);
+    system((std::string("mkdir -p ") + path).c_str());
     m_file_name = path + app;
     m_file_full_name = path + app + ".log";
     m_file = fopen(m_file_full_name.c_str(), "rb");
