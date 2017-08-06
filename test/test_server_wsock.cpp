@@ -111,7 +111,7 @@ public:
         }
         else
         {
-            LOG_ERROR("start server failed");
+            LOG_FATAL("start server failed");
         }
     }
     

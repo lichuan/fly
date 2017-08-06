@@ -123,7 +123,7 @@ bool Client<T>::connect(int32 timeout)
 
         if(ret != 0)
         {
-            LOG_FATAL("connect failed, getsockopt error: %s", strerror(ret));
+            LOG_ERROR("connect failed, getsockopt error: %s", strerror(ret));
             close(fd);
             
             return false;

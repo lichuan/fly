@@ -163,13 +163,13 @@ void Connection<Json>::parse()
         
         if(m_cur_msg_length > MAX_MSG_LEN)
         {
-            LOG_ERROR("message length exceed MAX_MSG_LEN(%d)", MAX_MSG_LEN);
+            LOG_WARN("message length exceed MAX_MSG_LEN(%d)", MAX_MSG_LEN);
             data = new char[m_cur_msg_length];
             is_new_buf = true;
         }
         else if(m_cur_msg_length > MAX_MSG_LEN / 2)
         {
-            LOG_ERROR("message length exceed half of MAX_MSG_LEN(%d)", MAX_MSG_LEN);
+            LOG_WARN("message length exceed half of MAX_MSG_LEN(%d)", MAX_MSG_LEN);
         }
         
         while(auto *message_chunk = m_recv_msg_queue.pop())
@@ -905,13 +905,13 @@ void Connection<Proto>::parse()
         
         if(m_cur_msg_length > MAX_MSG_LEN)
         {
-            LOG_ERROR("message length exceed MAX_MSG_LEN(%d)", MAX_MSG_LEN);
+            LOG_WARN("message length exceed MAX_MSG_LEN(%d)", MAX_MSG_LEN);
             data = new char[m_cur_msg_length];
             is_new_buf = true;
         }
         else if(m_cur_msg_length > MAX_MSG_LEN / 2)
         {
-            LOG_ERROR("message length exceed half of MAX_MSG_LEN(%d)", MAX_MSG_LEN);
+            LOG_WARN("message length exceed half of MAX_MSG_LEN(%d)", MAX_MSG_LEN);
         }
         
         while(auto *message_chunk = m_recv_msg_queue.pop())

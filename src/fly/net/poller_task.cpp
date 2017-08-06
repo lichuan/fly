@@ -37,6 +37,7 @@ Poller_Task<T>::Poller_Task(uint64 seq) : Loop_Task(seq)
     if(m_fd < 0)
     {
         LOG_FATAL("epoll_create1 failed in Poller_Task::Poller_Task %s", strerror(errno));
+        return;
     }
     
     m_close_event_fd = eventfd(0, 0);
@@ -44,6 +45,7 @@ Poller_Task<T>::Poller_Task(uint64 seq) : Loop_Task(seq)
     if(m_close_event_fd < 0)
     {
         LOG_FATAL("close event eventfd failed in Poller_Task::Poller_Task");
+        return; 
     }
 
     m_write_event_fd = eventfd(0, 0);
@@ -51,6 +53,7 @@ Poller_Task<T>::Poller_Task(uint64 seq) : Loop_Task(seq)
     if(m_write_event_fd < 0)
     {
         LOG_FATAL("write event eventfd failed in Poller_Task::Poller_Task");
+        return; 
     }
 
     m_stop_event_fd = eventfd(0, 0);
@@ -58,6 +61,7 @@ Poller_Task<T>::Poller_Task(uint64 seq) : Loop_Task(seq)
     if(m_stop_event_fd < 0)
     {
         LOG_FATAL("stop event eventfd failed in Poller_Task::Poller_Task");
+        return; 
     }
 
     struct epoll_event event;
@@ -69,6 +73,7 @@ Poller_Task<T>::Poller_Task(uint64 seq) : Loop_Task(seq)
     if(ret < 0)
     {
         LOG_FATAL("close event epoll_ctl failed in Poller_Task::Poller_Task");
+        return; 
     }
 
     m_write_udata.reset(new Connection<T>(m_write_event_fd, Addr("write_event", 0)));
@@ -78,6 +83,7 @@ Poller_Task<T>::Poller_Task(uint64 seq) : Loop_Task(seq)
     if(ret < 0)
     {
         LOG_FATAL("write event epoll_ctl failed in Poller_Task::Poller_Task");
+        return; 
     }
     
     m_stop_udata.reset(new Connection<T>(m_stop_event_fd, Addr("stop_event", 0)));
