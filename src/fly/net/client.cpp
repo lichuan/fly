@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <poll.h>
 #include <netinet/in.h>
 #include "fly/net/client.hpp"
@@ -81,66 +82,92 @@ bool Client<T>::connect(int32 timeout)
         
         return false;
     }
-    
-    struct sockaddr_in server_addr;
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    inet_pton(AF_INET, m_addr.m_host.c_str(), &server_addr.sin_addr);
-    server_addr.sin_port = htons(m_addr.m_port);
 
-    if(::connect(fd, (sockaddr*)&server_addr, sizeof(server_addr)) < 0)
-    {
-        if(errno != EINPROGRESS)
-        {        
-            LOG_FATAL("connect failed in Client::connect, server addr is %s:%d %s", m_addr.m_host.c_str(), m_addr.m_port, strerror(errno));
-            close(fd);
-            
-            return false;
-        }
-
-        struct pollfd fds;
-        fds.fd = fd;
-        fds.events = POLLOUT;
-        int32 ret = poll(&fds, 1, timeout);
-
-        if(ret <= 0)
-        {
-            LOG_FATAL("connect failed, poll return <= 0: %d", ret);
-            close(fd);
-            
-            return false;
-        }
+    struct addrinfo hint;
+    hint.ai_flags = 0;
+    hint.ai_family = AF_INET;
+    hint.ai_socktype = SOCK_STREAM;
+    hint.ai_protocol = 0;
+    struct addrinfo *result, *iter;
         
-        socklen_t len = sizeof(ret);
+    int32 ret = getaddrinfo(m_addr.m_host.c_str(), base::to_string(m_addr.m_port).c_str(), &hint, &result);
+    if(ret != 0)
+    {
+        LOG_FATAL("resolve dns failed in client::connect: %s", gai_strerror(ret));
 
-        if(getsockopt(fd, SOL_SOCKET, SO_ERROR, &ret, &len) < 0)
-        {
-            LOG_FATAL("connect failed, getsockopt return < 0");
-            close(fd);
-            
-            return false;
-        }
-
-        if(ret != 0)
-        {
-            LOG_ERROR("connect failed, getsockopt error: %s", strerror(ret));
-            close(fd);
-            
-            return false;
-        }
+        return false;
     }
     
-    std::shared_ptr<Connection<T>> connection = std::make_shared<Connection<T>>(fd, m_addr);
-    m_id = connection->m_id_allocator.new_id();
-    connection->m_id = m_id;
-    connection->m_init_cb = m_init_cb;
-    connection->m_dispatch_cb = m_dispatch_cb;
-    connection->m_close_cb = m_close_cb;
-    connection->m_be_closed_cb = m_be_closed_cb;
-    m_parser->register_connection(connection);
-    m_poller->register_connection(connection);
+    for(iter = result; iter != NULL; iter = iter->ai_next)
+    {
+        char ip[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &((sockaddr_in*)(iter->ai_addr))->sin_addr, ip, INET_ADDRSTRLEN);
+        LOG_INFO("resolve ip success in client::connect host: %s, ip: %s", m_addr.m_host.c_str(), ip);
+        
+        if(::connect(fd, iter->ai_addr, sizeof(sockaddr)) < 0)
+        {
+            if(errno != EINPROGRESS)
+            {        
+                LOG_FATAL("connect failed in Client::connect, host: %s, ip: %s, port: %d %s", m_addr.m_host.c_str(), ip, m_addr.m_port, strerror(errno));
+                close(fd);
+                
+                continue;
+            }
+
+            struct pollfd fds;
+            fds.fd = fd;
+            fds.events = POLLOUT;
+            int32 ret = poll(&fds, 1, timeout);
+
+            if(ret < 0)
+            {
+                LOG_FATAL("connect failed poll return < 0");
+                close(fd);
+                
+                continue;
+            }
+
+            if(ret == 0)
+            {
+                LOG_FATAL("connect failed, poll timeout");
+                close(fd);
+                
+                continue;
+            }
+        
+            socklen_t len = sizeof(ret);
+
+            if(getsockopt(fd, SOL_SOCKET, SO_ERROR, &ret, &len) < 0)
+            {
+                LOG_FATAL("connect failed, getsockopt return < 0");
+                close(fd);
+            
+                continue;
+            }
+
+            if(ret != 0)
+            {
+                LOG_ERROR("connect failed, getsockopt error: %s", strerror(ret));
+                close(fd);
+            
+                continue;
+            }
+        }
     
-    return true;
+        std::shared_ptr<Connection<T>> connection = std::make_shared<Connection<T>>(fd, m_addr);
+        m_id = connection->m_id_allocator.new_id();
+        connection->m_id = m_id;
+        connection->m_init_cb = m_init_cb;
+        connection->m_dispatch_cb = m_dispatch_cb;
+        connection->m_close_cb = m_close_cb;
+        connection->m_be_closed_cb = m_be_closed_cb;
+        m_parser->register_connection(connection);
+        m_poller->register_connection(connection);
+
+        return true;
+    }
+
+    return false;
 }
 
 template<typename T>

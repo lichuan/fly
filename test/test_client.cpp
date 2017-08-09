@@ -69,19 +69,23 @@ public:
         poller->start();
         parser->start();
         
-        int i = 5000;
+        int i = 1;
         while(i-- > 0)
         {
             
-            std::unique_ptr<fly::net::Client<Json>> client(new fly::net::Client<Json>(fly::net::Addr("127.0.0.1", 8088),
+            std::unique_ptr<fly::net::Client<Json>> client(new fly::net::Client<Json>(fly::net::Addr("mail.qq.com", 80),
                                                                           std::bind(&Test_Client::init, this, _1),
                                                                           std::bind(&Test_Client::dispatch, this, _1),
                                                                           std::bind(&Test_Client::close, this, _1),
                                                                           std::bind(&Test_Client::be_closed, this, _1),
                                                                           poller, parser));
-            if(client->connect(100))
+            if(client->connect(1000))
             {
                 LOG_INFO("connect to server ok");
+            }
+            else
+            {
+                LOG_INFO("connect to server failed");
             }
         }
         
