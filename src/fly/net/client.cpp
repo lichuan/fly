@@ -129,7 +129,7 @@ bool Client<T>::connect(int32 timeout)
 
             if(ret == 0)
             {
-                LOG_FATAL("connect failed, poll timeout");
+                LOG_ERROR("connect failed, poll timeout");
                 close(fd);
                 
                 continue;
