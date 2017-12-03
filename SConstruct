@@ -9,18 +9,16 @@ def get_shared_library_name(node):
     return os.path.basename(str(node)[:-2])[3:-3]
 
 env = Environment(CCFLAGS='-fpermissive -g -O2 -pthread -std=c++11', LINKFLAGS='-pthread -Wl,--start-group',
-CPPPATH=["#src", "#depend/rapidjson/include", "#depend/crypto-algorithms"])
-env_crypto = env.Clone(CCFLAGS='-g -O2 -Wall')
-Export("env_crypto")
-crypto_algorithms = SConscript("depend/crypto-algorithms/SConscript", variant_dir="build/crypto-algorithms", duplicate=0)
-env_crypto.Install("build/bin", crypto_algorithms)
+CPPPATH=["#src", "#depend/rapidjson/include", "#depend"])
+cryptopp = File('#depend/cryptopp/libcryptopp.a')
+env.Command(cryptopp, None, "cd depend/cryptopp && make")
 
 libs = [
-    get_static_library_name(crypto_algorithms),
+    cryptopp
 ]
 
 lib_path = [
-    "#build/bin",
+    "#build/bin"
 ]
 
 env.Replace(LIBS=libs, LIBPATH=lib_path)

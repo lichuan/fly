@@ -27,12 +27,6 @@
 #include "fly/base/logger.hpp"
 #include <thread>
 
-extern "C"
-{
-#include "sha1.h"
-#include "base64.h"
-}
-
 namespace fly {
 namespace net {
 
@@ -415,14 +409,9 @@ void Connection<Wsock>::parse()
         rsp += "Sec-WebSocket-Accept: ";
         const static std::string wsock_magic_key("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
         std::string server_key = key_str + wsock_magic_key;
-        SHA1_CTX sha1_ctx;
-        sha1_init(&sha1_ctx);
-        sha1_update(&sha1_ctx, server_key.c_str(), server_key.length());
         char sha1_buf[20] = {0};
-        sha1_final(&sha1_ctx, sha1_buf);
-        char base64_buf[32] = {0};
-        base64_encode(sha1_buf, base64_buf, 20, 0);
-        rsp += base64_buf;
+        std::string sha1_key = fly::base::Sha1::hash(server_key.c_str(), server_key.length());
+        rsp += fly::base::Base64::encode(sha1_key.c_str(), sha1_key.length());
         rsp += "\r\n\r\n";
         send_raw(rsp.c_str(), rsp.length());
         m_handshake_phase = false;

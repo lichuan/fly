@@ -53,6 +53,19 @@ public:
     uint8 m_index = 0;
 };
 
+class Base64
+{
+public:
+    static std::string encode(char *input, uint32 length);
+    static uint32 decode(char *input, uint32 length, char *out, uint32 max_length);
+};
+
+class Sha1
+{
+public:
+    static std::string hash(char *input, uint32 length);
+};
+
 class ID_Allocator
 {
 public:

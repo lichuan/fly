@@ -51,7 +51,7 @@ public:
         LOG_INFO("recv message from %s:%d raw_data: %s", addr.m_host.c_str(), addr.m_port, message->raw_data().c_str());
         std::string data = "";
 
-        for(auto i = 0; i < 10; ++i)
+        for(auto i = 0; i < 100; ++i)
         {
             data += "1234567890";
         }
