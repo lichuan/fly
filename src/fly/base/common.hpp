@@ -57,13 +57,14 @@ class Base64
 {
 public:
     static std::string encode(char *input, uint32 length);
-    static uint32 decode(char *input, uint32 length, char *out, uint32 max_length);
+    static uint32 decode(char *input, uint32 length, char *out, uint32 out_length);
 };
 
 class Sha1
 {
 public:
     static std::string hash(char *input, uint32 length);
+    static bool hash(char *input, uint32 length, char *out, uint32 out_length);
 };
 
 class ID_Allocator

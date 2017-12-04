@@ -410,8 +410,8 @@ void Connection<Wsock>::parse()
         const static std::string wsock_magic_key("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
         std::string server_key = key_str + wsock_magic_key;
         char sha1_buf[20] = {0};
-        std::string sha1_key = fly::base::Sha1::hash(server_key.c_str(), server_key.length());
-        rsp += fly::base::Base64::encode(sha1_key.c_str(), sha1_key.length());
+        fly::base::Sha1::hash(server_key.c_str(), server_key.length(), sha1_buf, 20);
+        rsp += fly::base::Base64::encode(sha1_buf, 20);
         rsp += "\r\n\r\n";
         send_raw(rsp.c_str(), rsp.length());
         m_handshake_phase = false;

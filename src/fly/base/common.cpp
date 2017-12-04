@@ -93,6 +93,21 @@ uint32 Base64::decode(char *input, uint32 length, char *out, uint32 out_length)
     return decoded_length;
 }
 
+bool Sha1::hash(char *input, uint32 length, char *out, uint32 out_length)
+{
+    using namespace CryptoPP;
+    SHA1 sha1;
+
+    if(out_length < SHA1::DIGESTSIZE)
+    {
+        return false;
+    }
+
+    sha1.CalculateDigest(out, input, length);
+
+    return true;
+}
+
 std::string Sha1::hash(char *input, uint32 length)
 {
     using namespace CryptoPP;
