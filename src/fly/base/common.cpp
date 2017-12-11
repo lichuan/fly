@@ -66,7 +66,34 @@ uint64 ID_Allocator::new_id()
     return m_id.fetch_add(1, std::memory_order_relaxed);
 }
 
-std::string Base64::encode(char *input, uint32 length)
+std::string byte2hexstr(const char *input, uint32 length)
+{
+    using namespace CryptoPP;
+    std::string encoded;
+    StringSource ss(input, length, true, new HexEncoder(new StringSink(encoded), false));
+
+    return encoded;
+}
+
+uint32 hexstr2byte(const char *input, uint32 length, char *out, uint32 out_length)
+{
+    using namespace CryptoPP;
+    HexDecoder decoder;
+    decoder.Put((CryptoPP::byte*)input, length);
+    decoder.MessageEnd();
+    uint32 decoded_length = decoder.MaxRetrievable();
+
+    if(decoded_length > out_length)
+    {
+        return decoded_length;
+    }
+
+    decoder.Get(out, decoded_length);
+
+    return decoded_length;
+}
+
+std::string base64_encode(const char *input, uint32 length)
 {
     using namespace CryptoPP;
     std::string encoded;
@@ -75,7 +102,7 @@ std::string Base64::encode(char *input, uint32 length)
     return encoded;
 }
 
-uint32 Base64::decode(char *input, uint32 length, char *out, uint32 out_length)
+uint32 base64_decode(const char *input, uint32 length, char *out, uint32 out_length)
 {
     using namespace CryptoPP;
     Base64Decoder decoder;
@@ -93,7 +120,7 @@ uint32 Base64::decode(char *input, uint32 length, char *out, uint32 out_length)
     return decoded_length;
 }
 
-bool Sha1::hash(char *input, uint32 length, char *out, uint32 out_length)
+bool sha1(const char *input, uint32 length, char *out, uint32 out_length)
 {
     using namespace CryptoPP;
     SHA1 sha1;
@@ -106,21 +133,6 @@ bool Sha1::hash(char *input, uint32 length, char *out, uint32 out_length)
     sha1.CalculateDigest(out, input, length);
 
     return true;
-}
-
-std::string Sha1::hash(char *input, uint32 length)
-{
-    using namespace CryptoPP;
-    SHA1 sha1;
-    char digest[SHA1::DIGESTSIZE] = {0};
-    sha1.CalculateDigest(digest, input, length);
-    std::string output;    
-    HexEncoder encoder;
-    encoder.Attach(new StringSink(output));
-    encoder.Put(digest, sizeof(digest));
-    encoder.MessageEnd();
-
-    return output;
 }
 
 uint32 random_32()

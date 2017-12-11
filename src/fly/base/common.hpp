@@ -53,19 +53,12 @@ public:
     uint8 m_index = 0;
 };
 
-class Base64
-{
-public:
-    static std::string encode(char *input, uint32 length);
-    static uint32 decode(char *input, uint32 length, char *out, uint32 out_length);
-};
-
-class Sha1
-{
-public:
-    static std::string hash(char *input, uint32 length);
-    static bool hash(char *input, uint32 length, char *out, uint32 out_length);
-};
+std::string base64_encode(const char *input, uint32 length);
+uint32 base64_decode(const char *input, uint32 length, char *out, uint32 out_length);
+bool sha1(const char *input, uint32 length, char *out, uint32 out_length);
+bool sha256(const char *input, uint32 length, char *out, uint32 out_length);
+std::string byte2hexstr(const char *input, uint32 length);
+uint32 hexstr2byte(const char *input, uint32 length, char *out, uint32 out_length);
 
 class ID_Allocator
 {
