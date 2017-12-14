@@ -135,6 +135,21 @@ bool sha1(const char *input, uint32 length, char *out, uint32 out_length)
     return true;
 }
 
+bool sha256(const char *input, uint32 length, char *out, uint32 out_length)
+{
+    using namespace CryptoPP;
+    SHA256 sha256;
+
+    if(out_length < SHA256::DIGESTSIZE)
+    {
+        return false;
+    }
+
+    sha256.CalculateDigest(out, input, length);
+
+    return true;
+}
+
 uint32 random_32()
 {
     static std::random_device rd;
