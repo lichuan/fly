@@ -53,13 +53,6 @@ public:
     uint8 m_index = 0;
 };
 
-std::string base64_encode(const char *input, uint32 length);
-uint32 base64_decode(const char *input, uint32 length, char *out, uint32 out_length);
-bool sha1(const char *input, uint32 length, char *out, uint32 out_length);
-bool sha256(const char *input, uint32 length, char *out, uint32 out_length);
-std::string byte2hexstr(const char *input, uint32 length);
-uint32 hexstr2byte(const char *input, uint32 length, char *out, uint32 out_length);
-
 class ID_Allocator
 {
 public:
@@ -69,13 +62,6 @@ private:
     std::atomic<uint64> m_id {1};
 };
 
-void crash_me();
-uint32 random_between(uint32 min, uint32 max);
-uint32 random_32();
-uint64 random_64();
-bool rate_by_percent(uint32 rate);    
-bool rate_by_thousand(uint32 rate);
-
 template<typename T>
 std::string to_string(T val)
 {
@@ -84,6 +70,19 @@ std::string to_string(T val)
 
     return ost.str();
 }
+
+std::string base64_encode(const char *input, uint32 length);
+uint32 base64_decode(const char *input, uint32 length, char *out, uint32 out_length);
+bool sha1(const char *input, uint32 length, char *out, uint32 out_length);
+bool sha256(const char *input, uint32 length, char *out, uint32 out_length);
+std::string byte2hexstr(const char *input, uint32 length);
+uint32 hexstr2byte(const char *input, uint32 length, char *out, uint32 out_length);
+void crash_me();
+uint32 random_between(uint32 min, uint32 max);
+uint32 random_32();
+uint64 random_64();
+bool rate_by_percent(uint32 rate);    
+bool rate_by_thousand(uint32 rate);
 
 }
 }

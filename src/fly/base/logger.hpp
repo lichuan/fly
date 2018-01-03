@@ -47,6 +47,7 @@ class Logger : public Singleton<Logger>
 public:
     void init(LOG_LEVEL level, const std::string &app, const std::string &path);
     void _log(uint32 year, uint32 month, uint32 day, const char *format, ...);
+    void _console_log(uint32 year, uint32 month, uint32 day, const char *format, ...);
     
     bool _enter(LOG_LEVEL level)
     {
@@ -138,6 +139,72 @@ private:
         sprintf(_format, "%d-%02d-%02d %02d:%02d:%02d.%06ld [utc:%lu] |fatal| %s:%d %s\n", 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, \
                 _tm.tm_min, _tm.tm_sec, _tv.tv_usec, _tv.tv_sec, __FILE__, __LINE__, format); \
         fly::base::Logger::instance()->_log(1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _format, ##__VA_ARGS__); \
+    }
+
+// the following macro also log to console
+#define CONSOLE_LOG_DEBUG(format, ...) \
+    if(fly::base::Logger::instance()->_enter(fly::base::DEBUG)) \
+    { \
+        char _format[256]; \
+        struct timeval _tv; \
+        gettimeofday(&_tv, NULL); \
+        struct tm _tm; \
+        localtime_r(&_tv.tv_sec, &_tm); \
+        sprintf(_format, "%d-%02d-%02d %02d:%02d:%02d.%06ld [utc:%lu] |debug| %s:%d %s\n", 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, \
+                _tm.tm_min, _tm.tm_sec, _tv.tv_usec, _tv.tv_sec, __FILE__, __LINE__, format); \
+        fly::base::Logger::instance()->_console_log(1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _format, ##__VA_ARGS__); \
+    }
+
+#define CONSOLE_LOG_INFO(format, ...) \
+    if(fly::base::Logger::instance()->_enter(fly::base::INFO)) \
+    { \
+        char _format[256]; \
+        struct timeval _tv; \
+        gettimeofday(&_tv, NULL); \
+        struct tm _tm; \
+        localtime_r(&_tv.tv_sec, &_tm); \
+        sprintf(_format, "%d-%02d-%02d %02d:%02d:%02d.%06ld [utc:%lu] |info| %s:%d %s\n", 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, \
+                _tm.tm_min, _tm.tm_sec, _tv.tv_usec, _tv.tv_sec, __FILE__, __LINE__, format); \
+        fly::base::Logger::instance()->_console_log(1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _format, ##__VA_ARGS__); \
+    }
+
+#define CONSOLE_LOG_WARN(format, ...) \
+    if(fly::base::Logger::instance()->_enter(fly::base::WARN)) \
+    { \
+        char _format[256]; \
+        struct timeval _tv; \
+        gettimeofday(&_tv, NULL); \
+        struct tm _tm; \
+        localtime_r(&_tv.tv_sec, &_tm); \
+        sprintf(_format, "%d-%02d-%02d %02d:%02d:%02d.%06ld [utc:%lu] |warn| %s:%d %s\n", 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, \
+                _tm.tm_min, _tm.tm_sec, _tv.tv_usec, _tv.tv_sec, __FILE__, __LINE__, format); \
+        fly::base::Logger::instance()->_console_log(1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _format, ##__VA_ARGS__); \
+    }
+
+#define CONSOLE_LOG_ERROR(format, ...) \
+    if(fly::base::Logger::instance()->_enter(fly::base::ERROR)) \
+    { \
+        char _format[256]; \
+        struct timeval _tv; \
+        gettimeofday(&_tv, NULL); \
+        struct tm _tm; \
+        localtime_r(&_tv.tv_sec, &_tm); \
+        sprintf(_format, "%d-%02d-%02d %02d:%02d:%02d.%06ld [utc:%lu] |error| %s:%d %s\n", 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, \
+                _tm.tm_min, _tm.tm_sec, _tv.tv_usec, _tv.tv_sec, __FILE__, __LINE__, format); \
+        fly::base::Logger::instance()->_console_log(1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _format, ##__VA_ARGS__); \
+    }
+
+#define CONSOLE_LOG_FATAL(format, ...) \
+    if(fly::base::Logger::instance()->_enter(fly::base::FATAL)) \
+    { \
+        char _format[256]; \
+        struct timeval _tv; \
+        gettimeofday(&_tv, NULL); \
+        struct tm _tm; \
+        localtime_r(&_tv.tv_sec, &_tm); \
+        sprintf(_format, "%d-%02d-%02d %02d:%02d:%02d.%06ld [utc:%lu] |fatal| %s:%d %s\n", 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, \
+                _tm.tm_min, _tm.tm_sec, _tv.tv_usec, _tv.tv_sec, __FILE__, __LINE__, format); \
+        fly::base::Logger::instance()->_console_log(1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _format, ##__VA_ARGS__); \
     }
 
 #endif

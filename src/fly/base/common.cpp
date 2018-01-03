@@ -58,7 +58,7 @@ void Scope_CB::set_cur_cb(uint8 index)
 
 uint64 ID_Allocator::new_id()
 {
-    if(m_id.load(std::memory_order_relaxed) >= 18446744073709551615UL)
+    if(m_id.load(std::memory_order_relaxed) == 18446744073709551615UL)
     {
         m_id.store(1, std::memory_order_relaxed);
     }
