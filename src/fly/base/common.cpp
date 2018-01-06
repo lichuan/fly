@@ -199,5 +199,22 @@ bool rate_by_thousand(uint32 rate)
     return random_between(1, 1000) <= rate;
 }
 
+void split_string(std::string &str, const char *split, std::vector<std::string> &vec, char **save_ptr)
+{
+    if(str.empty())
+    {
+        return;
+    }
+    
+    char *buf = str.data();
+    char *token = strtok_r(buf, split, save_ptr);
+    
+    while(token != NULL)
+    {
+        vec.push_back(token);
+        token = strtok_r(NULL, split, save_ptr);
+    }
+}
+
 }
 }
