@@ -177,7 +177,7 @@ uint64 Client<T>::id()
 }
 
 template class Client<Json>;
-template class Client<Wsock>;
+//template class Client<Wsock>;
 template class Client<Proto>;
 
 }

@@ -72,6 +72,14 @@ std::string to_string(T val)
     return ost.str();
 }
 
+template<typename T>
+void string_to(const std::string &str, T &val)
+{
+    std::stringstream ost;
+    ost << str;
+    ost >> val;
+}
+
 std::string base64_encode(const char *input, uint32 length);
 uint32 base64_decode(const char *input, uint32 length, char *out, uint32 out_length);
 bool sha1(const char *input, uint32 length, char *out, uint32 out_length);
@@ -84,8 +92,8 @@ uint32 random_32();
 uint64 random_64();
 bool rate_by_percent(uint32 rate);    
 bool rate_by_thousand(uint32 rate);
-void split_string(std::string &str, const char *split, std::vector<std::string> &vec, char **save_ptr);
-
+void split_string(const std::string &str, const char *split, std::vector<std::string> &vec, char **save_ptr);
+    
 }
 }
 
