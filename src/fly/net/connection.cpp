@@ -30,16 +30,6 @@
 namespace fly {
 namespace net {
 
-uint64 htonll(uint64 n)
-{
-    return (((uint64)htonl(n)) << 32) | htonl(n >> 32);
-}
-
-uint64 ntohll(uint64 n)
-{
-    return (((uint64)ntohl(n)) << 32) | ntohl(n >> 32);
-}
-
 //Json
 fly::base::ID_Allocator Connection<Json>::m_id_allocator;
 
@@ -297,7 +287,7 @@ void Connection<Wsock>::send(const void *data, uint32 size)
         buf = message_chunk->read_ptr();
         buf[1] = 127;
         uint64 *p_length = (uint64*)(buf + 2);
-        *p_length = htonll(size);
+        *p_length = fly::base::htonll(size);
         p_data = buf + 10;
     }
     else if(size > 125)
@@ -605,7 +595,7 @@ void Connection<Wsock>::parse()
                     }
                 }
 
-                m_cur_msg_length_1 = ntohll(msg_length);
+                m_cur_msg_length_1 = fly::base::ntohll(msg_length);
                 
                 if(m_cur_msg_length_1 == 0)
                 {

@@ -41,30 +41,30 @@ public:
     {
         std::lock_guard<std::mutex> guard(m_mutex);
         m_connections[connection->id()] = connection;
-        LOG_INFO("connection count: %u", m_connections.size());
+        CONSOLE_LOG_INFO("connection count: %u", m_connections.size());
     }
     
     void dispatch(std::unique_ptr<fly::net::Message<Json>> message)
     {
         std::shared_ptr<fly::net::Connection<Json>> connection = message->get_connection();
         const fly::net::Addr &addr = connection->peer_addr();
-        LOG_INFO("recv message from %s:%d raw_data: %s", addr.m_host.c_str(), addr.m_port, message->raw_data().c_str());
+        CONSOLE_LOG_INFO("recv message from %s:%d raw_data: %s", addr.m_host.c_str(), addr.m_port, message->raw_data().c_str());
     }
     
     void close(std::shared_ptr<fly::net::Connection<Json>> connection)
     {
-        LOG_INFO("close connection from %s:%d", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
+        CONSOLE_LOG_INFO("close connection from %s:%d", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
         std::lock_guard<std::mutex> guard(m_mutex);
         m_connections.erase(connection->id());
-        LOG_INFO("connection count: %u", m_connections.size());
+        CONSOLE_LOG_INFO("connection count: %u", m_connections.size());
     }
     
     void be_closed(std::shared_ptr<fly::net::Connection<Json>> connection)
     {
-        LOG_INFO("connection from %s:%d be closed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
+        CONSOLE_LOG_INFO("connection from %s:%d be closed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
         std::lock_guard<std::mutex> guard(m_mutex);
         m_connections.erase(connection->id());
-        LOG_INFO("connection count: %u", m_connections.size());
+        CONSOLE_LOG_INFO("connection count: %u", m_connections.size());
     }
     
     void main()
@@ -96,14 +96,14 @@ public:
         
         if(server->start())
         {
-            LOG_INFO("start server ok!");
+            CONSOLE_LOG_INFO("start server ok!");
             server->wait();
             thd.join();
-            LOG_INFO("stop server ok!");
+            CONSOLE_LOG_INFO("stop server ok!");
         }
         else
         {
-            LOG_FATAL("start server failed");
+            CONSOLE_LOG_FATAL("start server failed");
         }
     }
     

@@ -42,17 +42,17 @@ public:
     
     void dispatch(std::unique_ptr<fly::net::Message<Json>> connection)
     {
-        LOG_INFO("disaptch message");
+        CONSOLE_LOG_INFO("disaptch message");
     }
     
     void close(std::shared_ptr<fly::net::Connection<Json>> connection)
     {
-        LOG_INFO("close connection from %s:%d", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
+        CONSOLE_LOG_INFO("close connection from %s:%d", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
     }
     
     void be_closed(std::shared_ptr<fly::net::Connection<Json>> connection)
     {
-        LOG_INFO("connection from %s:%d be closed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
+        CONSOLE_LOG_INFO("connection from %s:%d be closed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
     }
     
     void main()
@@ -73,7 +73,7 @@ public:
         while(i-- > 0)
         {
             
-            std::unique_ptr<fly::net::Client<Json>> client(new fly::net::Client<Json>(fly::net::Addr("askcoin.me", 8080),
+            std::unique_ptr<fly::net::Client<Json>> client(new fly::net::Client<Json>(fly::net::Addr("askcoin.me", 80),
                                                                           std::bind(&Test_Client::init, this, _1),
                                                                           std::bind(&Test_Client::dispatch, this, _1),
                                                                           std::bind(&Test_Client::close, this, _1),
@@ -81,11 +81,11 @@ public:
                                                                           poller, parser));
             if(client->connect(1000))
             {
-                LOG_INFO("connect to server ok");
+                CONSOLE_LOG_INFO("connect to server ok");
             }
             else
             {
-                LOG_INFO("connect to server failed");
+                CONSOLE_LOG_INFO("connect to server failed");
             }
         }
         

@@ -93,7 +93,9 @@ uint64 random_64();
 bool rate_by_percent(uint32 rate);    
 bool rate_by_thousand(uint32 rate);
 void split_string(const std::string &str, const char *split, std::vector<std::string> &vec, char **save_ptr);
-    
+uint64 htonll(uint64 n);
+uint64 ntohll(uint64 n);
+
 }
 }
 

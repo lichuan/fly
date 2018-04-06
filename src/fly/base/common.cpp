@@ -20,6 +20,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <random>
+#include <netinet/in.h>
 #include "fly/base/common.hpp"
 #include "cryptopp/base64.h"
 #include "cryptopp/sha.h"
@@ -216,6 +217,16 @@ void split_string(const std::string &str, const char *split, std::vector<std::st
         vec.push_back(token);
         token = strtok_r(NULL, split, save_ptr);
     }
+}
+
+uint64 htonll(uint64 n)
+{
+    return (((uint64)htonl(n)) << 32) | htonl(n >> 32);
+}
+
+uint64 ntohll(uint64 n)
+{
+    return (((uint64)ntohl(n)) << 32) | ntohl(n >> 32);
 }
 
 }
