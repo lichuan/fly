@@ -221,12 +221,12 @@ void split_string(const std::string &str, const char *split, std::vector<std::st
 
 uint64 htonll(uint64 n)
 {
-    return (((uint64)htonl(n)) << 32) | htonl(n >> 32);
+    return (((uint64)htonl((uint32)n)) << 32) | htonl(n >> 32);
 }
 
 uint64 ntohll(uint64 n)
 {
-    return (((uint64)ntohl(n)) << 32) | ntohl(n >> 32);
+    return (((uint64)ntohl((uint32)n)) << 32) | ntohl(n >> 32);
 }
 
 }
