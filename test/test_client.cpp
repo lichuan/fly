@@ -73,7 +73,7 @@ public:
         while(i-- > 0)
         {
             
-            std::unique_ptr<fly::net::Client<Json>> client(new fly::net::Client<Json>(fly::net::Addr("askcoin.me", 80),
+            std::unique_ptr<fly::net::Client<Json>> client(new fly::net::Client<Json>(fly::net::Addr("127.0.0.1", 8088),
                                                                           std::bind(&Test_Client::init, this, _1),
                                                                           std::bind(&Test_Client::dispatch, this, _1),
                                                                           std::bind(&Test_Client::close, this, _1),
