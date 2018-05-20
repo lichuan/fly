@@ -39,10 +39,12 @@ public:
            std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
            std::shared_ptr<Poller<T>> poller, std::shared_ptr<Parser<T>> parser);
+    Client(const Addr &addr);
     bool connect(int32 timeout = -1);
     uint64 id();
     
 private:
+    bool m_only_test;
     uint64 m_id;
     Addr m_addr;
     std::shared_ptr<Poller<T>> m_poller;

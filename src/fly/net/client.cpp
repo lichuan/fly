@@ -49,6 +49,14 @@ Client<T>::Client(const Addr &addr,
     m_be_closed_cb = be_closed_cb;
     m_poller = poller;
     m_parser = parser;
+    m_only_test = false;
+}
+
+template<typename T>
+Client<T>::Client(const Addr &addr)
+{
+    m_addr = addr;
+    m_only_test = true;
 }
 
 template<typename T>
@@ -153,20 +161,23 @@ bool Client<T>::connect(int32 timeout)
                 continue;
             }
         }
-    
-        std::shared_ptr<Connection<T>> connection = std::make_shared<Connection<T>>(fd, m_addr);
-        m_id = connection->m_id_allocator.new_id();
-        connection->m_id = m_id;
-        connection->m_init_cb = m_init_cb;
-        connection->m_dispatch_cb = m_dispatch_cb;
-        connection->m_close_cb = m_close_cb;
-        connection->m_be_closed_cb = m_be_closed_cb;
-        m_parser->register_connection(connection);
-        m_poller->register_connection(connection);
 
+        if(!m_only_test)
+        {
+            std::shared_ptr<Connection<T>> connection = std::make_shared<Connection<T>>(fd, m_addr);
+            m_id = connection->m_id_allocator.new_id();
+            connection->m_id = m_id;
+            connection->m_init_cb = m_init_cb;
+            connection->m_dispatch_cb = m_dispatch_cb;
+            connection->m_close_cb = m_close_cb;
+            connection->m_be_closed_cb = m_be_closed_cb;
+            m_parser->register_connection(connection);
+            m_poller->register_connection(connection);
+        }
+        
         return true;
     }
-
+    
     return false;
 }
 
