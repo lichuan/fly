@@ -44,7 +44,7 @@ public:
     uint64 id();
     
 private:
-    bool m_only_test;
+    bool m_only_check;
     uint64 m_id;
     Addr m_addr;
     std::shared_ptr<Poller<T>> m_poller;

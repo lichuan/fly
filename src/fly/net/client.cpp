@@ -49,14 +49,14 @@ Client<T>::Client(const Addr &addr,
     m_be_closed_cb = be_closed_cb;
     m_poller = poller;
     m_parser = parser;
-    m_only_test = false;
+    m_only_check = false;
 }
 
 template<typename T>
 Client<T>::Client(const Addr &addr)
 {
     m_addr = addr;
-    m_only_test = true;
+    m_only_check = true;
 }
 
 template<typename T>
@@ -162,7 +162,7 @@ bool Client<T>::connect(int32 timeout)
             }
         }
 
-        if(!m_only_test)
+        if(!m_only_check)
         {
             std::shared_ptr<Connection<T>> connection = std::make_shared<Connection<T>>(fd, m_addr);
             m_id = connection->m_id_allocator.new_id();
