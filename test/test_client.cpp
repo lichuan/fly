@@ -62,12 +62,8 @@ public:
         
         //init logger
         fly::base::Logger::instance()->init(fly::base::DEBUG, "client", "./log/");
-
         std::shared_ptr<fly::net::Poller<Json>> poller(new fly::net::Poller<Json>(4));
-        std::shared_ptr<fly::net::Parser<Json>> parser(new fly::net::Parser<Json>(4));
-        
         poller->start();
-        parser->start();
         
         int i = 1;
         while(i-- > 0)
@@ -78,7 +74,7 @@ public:
                                                                           std::bind(&Test_Client::dispatch, this, _1),
                                                                           std::bind(&Test_Client::close, this, _1),
                                                                           std::bind(&Test_Client::be_closed, this, _1),
-                                                                          poller, parser));
+                                                                          poller));
             if(client->connect(1000))
             {
                 CONSOLE_LOG_INFO("connect to server ok");
@@ -90,7 +86,6 @@ public:
         }
         
         poller->wait();
-        parser->wait();
     }
 };
 

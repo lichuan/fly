@@ -24,7 +24,6 @@
 
 #include "fly/net/acceptor.hpp"
 #include "fly/net/poller.hpp"
-#include "fly/net/parser.hpp"
 #include "fly/net/message.hpp"
 
 namespace fly {
@@ -40,14 +39,14 @@ public:
            std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
-           std::shared_ptr<Poller<T>> poller, std::shared_ptr<Parser<T>> parser);
+           std::shared_ptr<Poller<T>> poller);
     Server(const Addr &addr,
            std::function<bool(std::shared_ptr<Connection<T>>)> allow_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> init_cb,
            std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
-           uint32 poller_num = 1, uint32 parser_num = 1);
+           uint32 poller_num = 1);
     void wait();
     bool start();
     void stop();
@@ -55,7 +54,6 @@ public:
 private:
     std::unique_ptr<Acceptor<T>> m_acceptor;
     std::shared_ptr<Poller<T>> m_poller;
-    std::shared_ptr<Parser<T>> m_parser;
 };
 
 }

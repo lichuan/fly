@@ -23,7 +23,6 @@
 #define FLY__NET__CLIENT
 
 #include "fly/net/poller.hpp"
-#include "fly/net/parser.hpp"
 #include "fly/net/message.hpp"
 
 namespace fly {
@@ -38,7 +37,7 @@ public:
            std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
-           std::shared_ptr<Poller<T>> poller, std::shared_ptr<Parser<T>> parser);
+           std::shared_ptr<Poller<T>> poller);
     Client(const Addr &addr);
     bool connect(int32 timeout = -1);
     uint64 id();
@@ -48,7 +47,6 @@ private:
     uint64 m_id;
     Addr m_addr;
     std::shared_ptr<Poller<T>> m_poller;
-    std::shared_ptr<Parser<T>> m_parser;
     std::function<void(std::shared_ptr<Connection<T>>)> m_close_cb;
     std::function<void(std::shared_ptr<Connection<T>>)> m_be_closed_cb;
     std::function<void(std::shared_ptr<Connection<T>>)> m_init_cb;

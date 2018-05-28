@@ -40,7 +40,7 @@ Client<T>::Client(const Addr &addr,
            std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
-           std::shared_ptr<Poller<T>> poller, std::shared_ptr<Parser<T>> parser)
+           std::shared_ptr<Poller<T>> poller)
 {
     m_addr = addr;
     m_init_cb = init_cb;
@@ -48,7 +48,6 @@ Client<T>::Client(const Addr &addr,
     m_close_cb = close_cb;
     m_be_closed_cb = be_closed_cb;
     m_poller = poller;
-    m_parser = parser;
     m_only_check = false;
 }
 
@@ -172,7 +171,6 @@ bool Client<T>::connect(int32 timeout)
             connection->m_dispatch_cb = m_dispatch_cb;
             connection->m_close_cb = m_close_cb;
             connection->m_be_closed_cb = m_be_closed_cb;
-            m_parser->register_connection(connection);
             m_poller->register_connection(connection);
         }
         

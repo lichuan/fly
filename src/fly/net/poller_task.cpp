@@ -24,7 +24,6 @@
 #include <unistd.h>
 #include "fly/base/logger.hpp"
 #include "fly/net/poller_task.hpp"
-#include "fly/net/parser_task.hpp"
 
 namespace fly {
 namespace net {
@@ -337,8 +336,8 @@ void Poller_Task<T>::run_in_loop()
                     
                     message_chunk->write_ptr(num);
                     recv_queue.push(message_chunk.release());
-                    connection->m_parser_task->push_connection(connection->shared_from_this());
-                    
+                    connection->parse();
+
                     if(num < REQ_SIZE)
                     {
                         break;

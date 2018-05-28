@@ -89,7 +89,7 @@ public:
                                                                       std::bind(&Test_Server::init, this, _1),
                                                                       std::bind(&Test_Server::dispatch, this, _1),
                                                                       std::bind(&Test_Server::close, this, _1),
-                                                                      std::bind(&Test_Server::be_closed, this, _1), 1, 2));
+                                                                      std::bind(&Test_Server::be_closed, this, _1), 1));
         
         // std::thread thd([&]()
         // {

@@ -34,12 +34,6 @@ template<typename T>
 class Poller_Task;
 
 template<typename T>
-class Parser_Task;
-
-template<typename T>
-class Parser;
-
-template<typename T>
 class Client;
 
 template<typename T>
@@ -55,9 +49,7 @@ class Connection {};
 template<>
 class Connection<Json> : public std::enable_shared_from_this<Connection<Json>>
 {
-    friend class Parser<Json>;
     friend class Poller_Task<Json>;
-    friend class Parser_Task<Json>;
     friend class Server<Json>;
     friend class Client<Json>;
     
@@ -88,7 +80,6 @@ private:
     Message_Chunk_Queue m_recv_msg_queue;
     Message_Chunk_Queue m_send_msg_queue;
     Poller_Task<Json> *m_poller_task = nullptr;
-    Parser_Task<Json> *m_parser_task = nullptr;
     static fly::base::ID_Allocator m_id_allocator;
     std::function<void(std::shared_ptr<Connection>)> m_close_cb;
     std::function<void(std::shared_ptr<Connection>)> m_be_closed_cb;
@@ -100,9 +91,7 @@ private:
 template<>
 class Connection<Wsock> : public std::enable_shared_from_this<Connection<Wsock>>
 {
-    friend class Parser<Wsock>;
     friend class Poller_Task<Wsock>;
-    friend class Parser_Task<Wsock>;
     friend class Server<Wsock>;
     friend class Client<Wsock>;
     
@@ -136,7 +125,6 @@ private:
     Message_Chunk_Queue m_recv_msg_queue;
     Message_Chunk_Queue m_send_msg_queue;
     Poller_Task<Wsock> *m_poller_task = nullptr;
-    Parser_Task<Wsock> *m_parser_task = nullptr;
     static fly::base::ID_Allocator m_id_allocator;
     std::function<void(std::shared_ptr<Connection>)> m_close_cb;
     std::function<void(std::shared_ptr<Connection>)> m_be_closed_cb;
@@ -148,9 +136,7 @@ private:
 template<>
 class Connection<Proto> : public std::enable_shared_from_this<Connection<Proto>>
 {
-    friend class Parser<Proto>;
     friend class Poller_Task<Proto>;
-    friend class Parser_Task<Proto>;
     friend class Server<Proto>;
     friend class Client<Proto>;
     
@@ -181,7 +167,6 @@ private:
     Message_Chunk_Queue m_recv_msg_queue;
     Message_Chunk_Queue m_send_msg_queue;
     Poller_Task<Proto> *m_poller_task = nullptr;
-    Parser_Task<Proto> *m_parser_task = nullptr;
     static fly::base::ID_Allocator m_id_allocator;
     std::function<void(std::shared_ptr<Connection>)> m_close_cb;
     std::function<void(std::shared_ptr<Connection>)> m_be_closed_cb;

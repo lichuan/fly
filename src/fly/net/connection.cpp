@@ -885,10 +885,7 @@ void Connection<Proto>::parse()
 {
     while(true)
     {
-        auto *message_chunk = m_recv_msg_queue.pop();
-        LOG_INFO("recv http length: %d", message_chunk->length());
-        LOG_INFO("recv http: %s", message_chunk->read_ptr());
-        return;
+        break; // unimplemented !!!
         
         char *msg_length_buf = (char*)(&m_cur_msg_length);
         uint32 remain_bytes = sizeof(uint32);

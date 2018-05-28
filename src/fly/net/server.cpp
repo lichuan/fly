@@ -36,11 +36,10 @@ Server<T>::Server(const Addr &addr,
                std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
                std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
                std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
-               std::shared_ptr<Poller<T>> poller, std::shared_ptr<Parser<T>> parser)
+               std::shared_ptr<Poller<T>> poller)
 {
     m_poller = poller;
-    m_parser = parser;
-    
+
     m_acceptor.reset(new Acceptor<T>(addr, [=](std::shared_ptr<Connection<T>> connection)
     {
         if(allow_cb(connection))
@@ -50,7 +49,6 @@ Server<T>::Server(const Addr &addr,
             connection->m_dispatch_cb = dispatch_cb;
             connection->m_close_cb = close_cb;
             connection->m_be_closed_cb = be_closed_cb;
-            m_parser->register_connection(connection);
             m_poller->register_connection(connection);
         }
         else
@@ -68,11 +66,10 @@ Server<T>::Server(const Addr &addr,
                std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
                std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
                std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
-               uint32 poller_num, uint32 parser_num)
+               uint32 poller_num)
 {
     m_poller.reset(new Poller<T>(poller_num));
-    m_parser.reset(new Parser<T>(parser_num));
-
+    
     m_acceptor.reset(new Acceptor<T>(addr, [=](std::shared_ptr<Connection<T>> connection)
     {
         if(allow_cb(connection))
@@ -82,7 +79,6 @@ Server<T>::Server(const Addr &addr,
             connection->m_dispatch_cb = dispatch_cb;
             connection->m_close_cb = close_cb;
             connection->m_be_closed_cb = be_closed_cb;
-            m_parser->register_connection(connection);
             m_poller->register_connection(connection);
         }
         else
@@ -101,11 +97,6 @@ bool Server<T>::start()
         m_poller->start();
     }
 
-    if(m_parser.unique())
-    {
-        m_parser->start();
-    }
-
     return m_acceptor->start();
 }
 
@@ -118,11 +109,6 @@ void Server<T>::stop()
     {
         m_poller->stop();
     }
-    
-    if(m_parser.unique())
-    {
-        m_parser->stop();
-    }
 }
 
 template<typename T>
@@ -133,11 +119,6 @@ void Server<T>::wait()
     if(m_poller.unique())
     {
         m_poller->wait();
-    }
-    
-    if(m_parser.unique())
-    {
-        m_parser->wait();
     }
 }
 
