@@ -137,7 +137,7 @@ void Poller_Task<T>::stop()
     
     if(num != sizeof(uint64))
     {
-        LOG_FATAL("write m_stop_event_fd failed in Poller_Task::close_connection");
+        LOG_FATAL("write m_stop_event_fd failed in Poller_Task::stop");
     }
 }
 
@@ -177,7 +177,7 @@ void Poller_Task<T>::do_write(std::shared_ptr<Connection<T>> connection)
 
         if(num == 0)
         {
-            LOG_FATAL("write return 0, it's impossible, in Poller_Task::run_in_loop");
+            LOG_FATAL("write return 0, it's impossible, in Poller_Task::do_write(arg)");
         }
         
         if(num <= 0)
@@ -240,7 +240,7 @@ void Poller_Task<T>::do_close()
     
     if(num != sizeof(uint64))
     {
-        LOG_FATAL("read m_close_event_fd failed in Poller_Task::do_write");
+        LOG_FATAL("read m_close_event_fd failed in Poller_Task::do_close");
         
         return;
     }
