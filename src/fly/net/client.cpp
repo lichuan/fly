@@ -166,6 +166,7 @@ bool Client<T>::connect(int32 timeout)
         {
             std::shared_ptr<Connection<T>> connection = std::make_shared<Connection<T>>(fd, m_addr);
             m_id = connection->m_id_allocator.new_id();
+            connection->set_passive(false);
             connection->m_id = m_id;
             connection->m_init_cb = m_init_cb;
             connection->m_dispatch_cb = m_dispatch_cb;

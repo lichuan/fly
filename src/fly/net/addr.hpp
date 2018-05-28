@@ -40,6 +40,11 @@ struct Addr
         m_host = host;
         m_port = port;
     }
+
+    bool operator==(const Addr &other)
+    {
+        return m_host == other.m_host && m_port == other.m_port;
+    }
 };
 
 }

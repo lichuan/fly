@@ -50,6 +50,27 @@ Connection<Json>::Connection(int32 fd, const Addr &peer_addr)
 {
     m_fd = fd;
     m_peer_addr = peer_addr;
+    m_is_passive = true;
+}
+
+bool Connection<Json>::is_passive()
+{
+    return m_is_passive;
+}
+
+std::string Connection<Json>::key() const
+{
+    return m_key;
+}
+
+void Connection<Json>::key(std::string k)
+{
+    m_key = k;
+}
+
+void Connection<Json>::set_passive(bool is_passive)
+{
+    m_is_passive = is_passive;
 }
 
 uint64 Connection<Json>::id()
@@ -250,11 +271,32 @@ Connection<Wsock>::Connection(int32 fd, const Addr &peer_addr)
 {
     m_fd = fd;
     m_peer_addr = peer_addr;
+    m_is_passive = true;
+}
+
+bool Connection<Wsock>::is_passive()
+{
+    return m_is_passive;
+}
+
+void Connection<Wsock>::set_passive(bool is_passive)
+{
+    m_is_passive = is_passive;
 }
 
 uint64 Connection<Wsock>::id()
 {
     return m_id;
+}
+
+std::string Connection<Wsock>::key() const
+{
+    return m_key;
+}
+
+void Connection<Wsock>::key(std::string k)
+{
+    m_key = k;
 }
 
 void Connection<Wsock>::send(rapidjson::Document &doc)
@@ -782,6 +824,27 @@ Connection<Proto>::Connection(int32 fd, const Addr &peer_addr)
 {
     m_fd = fd;
     m_peer_addr = peer_addr;
+    m_is_passive = true;
+}
+
+bool Connection<Proto>::is_passive()
+{
+    return m_is_passive;
+}
+
+void Connection<Proto>::set_passive(bool is_passive)
+{
+    m_is_passive = is_passive;
+}
+
+std::string Connection<Proto>::key() const
+{
+    return m_key;
+}
+
+void Connection<Proto>::key(std::string k)
+{
+    m_key = k;
 }
 
 uint64 Connection<Proto>::id()

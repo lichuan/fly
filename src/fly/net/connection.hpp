@@ -69,6 +69,10 @@ public:
     void send(const void *data, uint32 size);
     void send(rapidjson::Document &doc);
     const Addr& peer_addr();
+    bool is_passive();
+    void set_passive(bool is_passive);
+    std::string key() const;
+    void key(std::string k);
     
 private:
     void parse();
@@ -77,6 +81,8 @@ private:
     uint32 m_cur_msg_length = 0;
     bool m_stop_parse = false;
     Addr m_peer_addr;
+    bool m_is_passive;
+    std::string m_key;
     std::atomic<bool> m_closed {false};
     std::shared_ptr<Connection> m_self; //add ref
     Message_Chunk_Queue m_recv_msg_queue;
@@ -108,6 +114,10 @@ public:
     void send(const void *data, uint32 size);
     void send(rapidjson::Document &doc);
     const Addr& peer_addr();
+    bool is_passive();
+    void set_passive(bool is_passive);
+    std::string key() const;
+    void key(std::string k);
     
 private:
     void send_raw(const void *data, uint32 size);
@@ -117,8 +127,10 @@ private:
     uint8 m_cur_msg_length = 0;
     uint64 m_cur_msg_length_1 = 0;
     bool m_stop_parse = false;
+    bool m_is_passive;
     bool m_handshake_phase = true;
     Addr m_peer_addr;
+    std::string m_key;
     std::atomic<bool> m_closed {false};
     std::shared_ptr<Connection> m_self; //add ref
     Message_Chunk_Queue m_recv_msg_queue;
@@ -150,6 +162,10 @@ public:
     void send(const void *data, uint32 size);
     void send(rapidjson::Document &doc);
     const Addr& peer_addr();
+    bool is_passive();
+    void set_passive(bool is_passive);
+    std::string key() const;
+    void key(std::string k);
     
 private:
     void parse();
@@ -157,8 +173,10 @@ private:
     uint64 m_id = 0;
     uint32 m_cur_msg_length = 0;
     bool m_stop_parse = false;
+    bool m_is_passive;
     Addr m_peer_addr;
     std::atomic<bool> m_closed {false};
+    std::string m_key;
     std::shared_ptr<Connection> m_self; //add ref
     Message_Chunk_Queue m_recv_msg_queue;
     Message_Chunk_Queue m_send_msg_queue;
