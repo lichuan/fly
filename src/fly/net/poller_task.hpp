@@ -34,7 +34,7 @@ class Poller_Task : public fly::task::Loop_Task
 {
 public:
     Poller_Task(uint64 seq);
-    void register_connection(std::shared_ptr<Connection<T>> connection);
+    bool register_connection(std::shared_ptr<Connection<T>> connection);
     virtual void run_in_loop() override;
     void close_connection(std::shared_ptr<Connection<T>> connection);
     void write_connection(std::shared_ptr<Connection<T>> connection);

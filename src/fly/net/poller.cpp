@@ -62,9 +62,9 @@ void Poller<T>::wait()
 }
 
 template<typename T>
-void Poller<T>::register_connection(std::shared_ptr<Connection<T>> connection)
+bool Poller<T>::register_connection(std::shared_ptr<Connection<T>> connection)
 {
-    m_poller_tasks[connection->id() % m_poller_task_num]->register_connection(connection);
+    return m_poller_tasks[connection->id() % m_poller_task_num]->register_connection(connection);
 }
 
 template class Poller<Json>;

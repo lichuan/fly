@@ -96,7 +96,7 @@ Poller_Task<T>::Poller_Task(uint64 seq) : Loop_Task(seq)
 }
 
 template<typename T>
-void Poller_Task<T>::register_connection(std::shared_ptr<Connection<T>> connection)
+bool Poller_Task<T>::register_connection(std::shared_ptr<Connection<T>> connection)
 {
     struct epoll_event event;
     event.data.ptr = connection.get();
@@ -107,12 +107,14 @@ void Poller_Task<T>::register_connection(std::shared_ptr<Connection<T>> connecti
     {
         LOG_FATAL("epoll_ctl failed in Poller_Task::register_connection: fd %d %s", connection->m_fd, strerror(errno));
 
-        return;
+        return false;
     }
-    
+
     connection->m_poller_task = this;
     connection->m_self = connection;
     connection->m_init_cb(connection);
+    
+    return true;
 }
 
 template<typename T>

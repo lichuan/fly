@@ -37,7 +37,7 @@ public:
     void wait();
     void start();
     void stop();
-    void register_connection(std::shared_ptr<Connection<T>> connection);
+    bool register_connection(std::shared_ptr<Connection<T>> connection);
     
 private:
     std::unique_ptr<fly::task::Scheduler> m_scheduler;

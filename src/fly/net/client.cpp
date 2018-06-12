@@ -171,7 +171,11 @@ bool Client<T>::connect(int32 timeout)
             connection->m_dispatch_cb = m_dispatch_cb;
             connection->m_close_cb = m_close_cb;
             connection->m_be_closed_cb = m_be_closed_cb;
-            m_poller->register_connection(connection);
+
+            if(!m_poller->register_connection(connection))
+            {
+                return false;
+            }
         }
         
         return true;
