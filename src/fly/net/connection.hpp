@@ -65,10 +65,10 @@ public:
     void set_passive(bool is_passive);
     std::string key() const;
     void key(std::string k);
-    
+
 private:
-    void parse();
     int32 m_fd;
+    void parse();
     uint64 m_id = 0;
     uint32 m_cur_msg_length = 0;
     bool m_stop_parse = false;

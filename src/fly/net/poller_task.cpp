@@ -101,19 +101,22 @@ bool Poller_Task<T>::register_connection(std::shared_ptr<Connection<T>> connecti
     struct epoll_event event;
     event.data.ptr = connection.get();
     event.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET;
-    int32 ret = epoll_ctl(m_fd, EPOLL_CTL_ADD, connection->m_fd, &event);
-    
-    if(ret < 0)
-    {
-        LOG_FATAL("epoll_ctl failed in Poller_Task::register_connection: fd %d %s", connection->m_fd, strerror(errno));
-
-        return false;
-    }
-
     connection->m_poller_task = this;
     connection->m_self = connection;
     connection->m_init_cb(connection);
-    
+    int32 ret = epoll_ctl(m_fd, EPOLL_CTL_ADD, connection->m_fd, &event);
+
+    if(ret < 0)
+    {
+        LOG_FATAL("epoll_ctl failed in Poller_Task::register_connection: %s", strerror(errno));
+        close(connection->m_fd);
+        connection->m_closed.store(true, std::memory_order_relaxed);
+        connection->m_be_closed_cb(connection->shared_from_this());
+        connection->m_self.reset();
+        
+        return false;
+    }
+
     return true;
 }
 
@@ -255,7 +258,13 @@ void Poller_Task<T>::do_close()
             if(!connection->m_closed.load(std::memory_order_relaxed))
             {
                 int32 fd = connection->m_fd;
-                epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
+                int ret = epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
+
+                if(ret < 0)
+                {
+                    LOG_FATAL("epoll_ctl EPOLL_CTL_DEL failed in Poller_Task::do_close: %s", strerror(errno));
+                }
+                
                 close(fd);
                 connection->m_self.reset();
                 connection->m_closed.store(true, std::memory_order_relaxed);
@@ -277,16 +286,27 @@ void Poller_Task<T>::run_in_loop()
 
         return;
     }
-    
+
     for(auto i = 0; i < fd_num; ++i)
     {
         Connection<T> *connection = static_cast<Connection<T>*>(events[i].data.ptr);
         int32 fd = connection->m_fd;
         uint32 event = events[i].events;
-        
+
         if(event & (EPOLLERR | EPOLLHUP | EPOLLRDHUP))
         {
-            epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
+            if(connection->m_closed.load(std::memory_order_relaxed))
+            {
+                continue;
+            }
+
+            int ret = epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
+
+            if(ret < 0)
+            {
+                LOG_FATAL("epoll_ctl EPOLL_CTL_DEL failed in Poller_Task::run_in_loop: %s", strerror(errno));
+            }
+
             close(fd);
             connection->m_closed.store(true, std::memory_order_relaxed);
             connection->m_be_closed_cb(connection->shared_from_this());
@@ -310,6 +330,11 @@ void Poller_Task<T>::run_in_loop()
             }
             else
             {
+                if(connection->m_closed.load(std::memory_order_relaxed))
+                {
+                    continue;
+                }
+
                 while(true)
                 {
                     auto REQ_SIZE = 4096;
@@ -349,6 +374,11 @@ void Poller_Task<T>::run_in_loop()
         }
         else if(event & EPOLLOUT)
         {
+            if(connection->m_closed.load(std::memory_order_relaxed))
+            {
+                continue;
+            }
+            
             do_write(connection->shared_from_this());
         }
     }
