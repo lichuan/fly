@@ -37,7 +37,7 @@ public:
         std::lock_guard<std::mutex> guard(m_mutex);
         m_queue.push_back(element);
     }
-    
+
     bool pop(std::list<T> &queue)
     {
         std::lock_guard<std::mutex> guard(m_mutex);
@@ -57,35 +57,34 @@ private:
     std::mutex m_mutex;
 };
 
-// template<typename T>
-// class Lock_Queue<T*>
-// {
-// public:
-//     void push(T *element)
-//     {
-//         std::lock_guard<std::mutex> guard(m_mutex);
-//         m_queue.push_back(element);
-//     }
-
-//     T* pop()
-//     {
-//         std::lock_guard<std::mutex> guard(m_mutex);
-        
-//         if(m_queue.empty())
-//         {
-//             return nullptr;
-//         }
-        
-//         T *element = m_queue.front();
-//         m_queue.pop_front();
-        
-//         return element;
-//     }
+template<typename T>
+class Lock_Queue<std::unique_ptr<T>>
+{
+public:
+    void push(std::unique_ptr<T> element)
+    {
+        std::lock_guard<std::mutex> guard(m_mutex);
+        m_queue.push_back(std::move(element));
+    }
     
-// private:
-//     std::list<T*> m_queue;
-//     std::mutex m_mutex;
-// };
+    bool pop(std::list<std::unique_ptr<T>> &queue)
+    {
+        std::lock_guard<std::mutex> guard(m_mutex);
+
+        if(m_queue.empty())
+        {
+            return false;
+        }
+
+        queue.swap(m_queue);
+
+        return true;
+    }
+    
+private:
+    std::list<std::unique_ptr<T>> m_queue;
+    std::mutex m_mutex;
+};
 
 }
 }
