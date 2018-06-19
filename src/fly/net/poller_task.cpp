@@ -222,11 +222,11 @@ void Poller_Task<T>::do_write()
         return;
     }
     
-    std::vector<std::shared_ptr<Connection<T>>> vec;
+    std::list<std::shared_ptr<Connection<T>>> write_queue;
 
-    if(m_write_queue.pop(vec))
+    if(m_write_queue.pop(write_queue))
     {
-        for(auto &connection : vec)
+        for(auto &connection : write_queue)
         {
             if(!connection->m_closed.load(std::memory_order_relaxed))
             {
@@ -249,11 +249,11 @@ void Poller_Task<T>::do_close()
         return;
     }
 
-    std::vector<std::shared_ptr<Connection<T>>> vec;
+    std::list<std::shared_ptr<Connection<T>>> close_queue;
 
-    if(m_close_queue.pop(vec))
+    if(m_close_queue.pop(close_queue))
     {
-        for(auto &connection : vec)
+        for(auto &connection : close_queue)
         {
             if(!connection->m_closed.load(std::memory_order_relaxed))
             {

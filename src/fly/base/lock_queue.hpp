@@ -23,7 +23,7 @@
 #define FLY__BASE__LOCK_QUEUE
 
 #include <mutex>
-#include <vector>
+#include <list>
 
 namespace fly {
 namespace base {
@@ -38,7 +38,7 @@ public:
         m_queue.push_back(element);
     }
     
-    bool pop(std::vector<T> &queue)
+    bool pop(std::list<T> &queue)
     {
         std::lock_guard<std::mutex> guard(m_mutex);
 
@@ -53,7 +53,7 @@ public:
     }
     
 private:
-    std::vector<T> m_queue;
+    std::list<T> m_queue;
     std::mutex m_mutex;
 };
 
@@ -83,7 +83,7 @@ private:
 //     }
     
 // private:
-//     std::deque<T*> m_queue;
+//     std::list<T*> m_queue;
 //     std::mutex m_mutex;
 // };
 

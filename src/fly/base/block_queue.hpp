@@ -23,7 +23,7 @@
 #define FLY__BASE__BLOCK_QUEUE
 
 #include <mutex>
-#include <deque>
+#include <list>
 #include <condition_variable>
 #include "fly/base/common.hpp"
 
@@ -67,7 +67,7 @@ public:
         return element;
     }
     
-    std::deque<T> m_queue;
+    std::list<T> m_queue;
     std::mutex m_mutex;
     bool m_full = false;
     std::condition_variable m_cond_not_empty;
