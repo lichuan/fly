@@ -31,12 +31,12 @@ class Connection;
 
 template<typename T>
 Server<T>::Server(const Addr &addr,
-               std::function<bool(std::shared_ptr<Connection<T>>)> allow_cb,
-               std::function<void(std::shared_ptr<Connection<T>>)> init_cb,
-               std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
-               std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
-               std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
-               std::shared_ptr<Poller<T>> poller)
+                  std::function<bool(std::shared_ptr<Connection<T>>)> allow_cb,
+                  std::function<void(std::shared_ptr<Connection<T>>)> init_cb,
+                  std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
+                  std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
+                  std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
+                  std::shared_ptr<Poller<T>> poller, uint32 max_msg_length)
 {
     m_poller = poller;
 
@@ -45,6 +45,7 @@ Server<T>::Server(const Addr &addr,
         if(allow_cb(connection))
         {
             connection->m_id = connection->m_id_allocator.new_id();
+            connection->m_max_msg_length = max_msg_length;
             connection->m_init_cb = init_cb;
             connection->m_dispatch_cb = dispatch_cb;
             connection->m_close_cb = close_cb;
@@ -61,20 +62,21 @@ Server<T>::Server(const Addr &addr,
 
 template<typename T>
 Server<T>::Server(const Addr &addr,
-               std::function<bool(std::shared_ptr<Connection<T>>)> allow_cb,
-               std::function<void(std::shared_ptr<Connection<T>>)> init_cb,
-               std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
-               std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
-               std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
-               uint32 poller_num)
+                  std::function<bool(std::shared_ptr<Connection<T>>)> allow_cb,
+                  std::function<void(std::shared_ptr<Connection<T>>)> init_cb,
+                  std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
+                  std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
+                  std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
+                  uint32 poller_num, uint32 max_msg_length)
 {
     m_poller.reset(new Poller<T>(poller_num));
-    
+
     m_acceptor.reset(new Acceptor<T>(addr, [=](std::shared_ptr<Connection<T>> connection)
     {
         if(allow_cb(connection))
         {
             connection->m_id = connection->m_id_allocator.new_id();
+            connection->m_max_msg_length = max_msg_length;
             connection->m_init_cb = init_cb;
             connection->m_dispatch_cb = dispatch_cb;
             connection->m_close_cb = close_cb;

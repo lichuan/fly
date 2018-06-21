@@ -36,11 +36,11 @@ namespace net {
 
 template<typename T>
 Client<T>::Client(const Addr &addr,
-           std::function<void(std::shared_ptr<Connection<T>>)> init_cb,
-           std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
-           std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
-           std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
-           std::shared_ptr<Poller<T>> poller)
+                  std::function<void(std::shared_ptr<Connection<T>>)> init_cb,
+                  std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
+                  std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
+                  std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
+                  std::shared_ptr<Poller<T>> poller, uint32 max_msg_length)
 {
     m_addr = addr;
     m_init_cb = init_cb;
@@ -49,6 +49,7 @@ Client<T>::Client(const Addr &addr,
     m_be_closed_cb = be_closed_cb;
     m_poller = poller;
     m_only_check = false;
+    m_max_msg_length = max_msg_length;
 }
 
 template<typename T>
@@ -166,6 +167,7 @@ bool Client<T>::connect(int32 timeout)
             std::shared_ptr<Connection<T>> connection = std::make_shared<Connection<T>>(fd, m_addr);
             m_id = connection->m_id_allocator.new_id();
             connection->set_passive(false);
+            connection->m_max_msg_length = m_max_msg_length;
             connection->m_id = m_id;
             connection->m_init_cb = m_init_cb;
             connection->m_dispatch_cb = m_dispatch_cb;

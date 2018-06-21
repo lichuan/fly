@@ -37,13 +37,14 @@ public:
            std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
-           std::shared_ptr<Poller<T>> poller);
+           std::shared_ptr<Poller<T>> poller, uint32 max_msg_length = 1024 * 1024 * 1024);
     Client(const Addr &addr);
     bool connect(int32 timeout = -1);
     uint64 id();
     
 private:
     bool m_only_check;
+    uint32 m_max_msg_length;
     uint64 m_id;
     Addr m_addr;
     std::shared_ptr<Poller<T>> m_poller;

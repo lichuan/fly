@@ -155,26 +155,29 @@ void Connection<Json>::parse()
         m_cur_msg_length = ntohl(m_cur_msg_length);
         
     after_parse_length:
-        if(m_recv_msg_queue.length() < m_cur_msg_length)
+        if(m_cur_msg_length > m_max_msg_length)
         {
-            break;
+            LOG_ERROR("json message length(%lu) exceed max_msg_length(%u) from %s:%u", m_cur_msg_length, m_max_msg_length, \
+                      m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+            close();
+            return;
         }
         
-        const uint32 MAX_MSG_LEN = 102400;
-        char msg_buf[MAX_MSG_LEN] = {0};
+        if(m_recv_msg_queue.length() < m_cur_msg_length)
+        {
+            return;
+        }
+        
+        const uint32 MAX_STACK_SIZE = 512 * 1024;
+        char msg_buf[MAX_STACK_SIZE] = {0};
         char *data = msg_buf;
         bool is_new_buf = false;
         remain_bytes = m_cur_msg_length;
         
-        if(m_cur_msg_length > MAX_MSG_LEN)
+        if(m_cur_msg_length > MAX_STACK_SIZE)
         {
-            LOG_WARN("message length exceed MAX_MSG_LEN(%d)", MAX_MSG_LEN);
             data = new char[m_cur_msg_length];
             is_new_buf = true;
-        }
-        else if(m_cur_msg_length > MAX_MSG_LEN / 2)
-        {
-            LOG_WARN("message length exceed half of MAX_MSG_LEN(%d)", MAX_MSG_LEN);
         }
         
         while(auto *message_chunk = m_recv_msg_queue.pop())
@@ -203,6 +206,7 @@ void Connection<Json>::parse()
 
                 std::unique_ptr<Message<Json>> message(new Message<Json>(shared_from_this()));
                 message->m_raw_data.assign(data, m_cur_msg_length);
+                message->m_length = m_cur_msg_length;
                 m_cur_msg_length = 0;
 
                 if(is_new_buf)
@@ -217,30 +221,34 @@ void Connection<Json>::parse()
                 {
                     if(!doc.HasMember("msg_type"))
                     {
-                        break;
+                        close();
+                        return;
                     }
                     
                     const rapidjson::Value &msg_type = doc["msg_type"];
 
                     if(!msg_type.IsUint())
                     {
-                        break;
+                        close();
+                        return;
                     }
-
+                    
                     message->m_type = msg_type.GetUint();
 
                     if(!doc.HasMember("msg_cmd"))
                     {
-                        break;
+                        close();
+                        return;
                     }
-
+                    
                     const rapidjson::Value &msg_cmd = doc["msg_cmd"];
 
                     if(!msg_cmd.IsUint())
                     {
-                        break;
+                        close();
+                        return;
                     }
-
+                    
                     message->m_cmd = msg_cmd.GetUint();
                     m_dispatch_cb(std::move(message));
                 }
@@ -515,29 +523,29 @@ void Connection<Wsock>::parse()
             }
             else if(op_code == 0x08) //close
             {
-                LOG_WARN("recv websocket close protocol");
+                LOG_WARN("recv websocket close protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
                 close();
                 return;
             }
             else if(op_code == 0x09) //ping
             {
-                LOG_WARN("recv websocket ping protocol");
+                LOG_WARN("recv websocket ping protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
                 close();
                 return; 
             }
             else if(op_code == 0x0a) //pong
             {
-                LOG_WARN("recv websocket pong protocol");
+                LOG_WARN("recv websocket pong protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
                 close();
                 return;
             }
             else
             {
-                LOG_WARN("recv websocket other protocol");
+                LOG_WARN("recv websocket other protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
                 close();
                 return;
             }
-
+            
             if(buf[1] & 0x80 == 0)
             {
                 close();
@@ -659,12 +667,19 @@ void Connection<Wsock>::parse()
             msg_length = m_cur_msg_length_1;
         }
 
+        if(msg_length > m_max_msg_length)
+        {
+            LOG_ERROR("wsock message length(%lu) exceed max_msg_length(%u) from %s:%u", msg_length, m_max_msg_length, m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+            close();
+            return;
+        }
+        
         //4 bytes mask
         if(m_recv_msg_queue.length() < msg_length + 4)
         {
             return;
         }
-
+        
         char mask_keys[4] = {0};
         uint32 remain_bytes = 4;
 
@@ -696,23 +711,18 @@ void Connection<Wsock>::parse()
             }
         }
         
-        const uint32 MAX_MSG_LEN = 102400;
-        char msg_buf[MAX_MSG_LEN] = {0};
+        const uint32 MAX_STACK_SIZE = 512 * 1024;
+        char msg_buf[MAX_STACK_SIZE] = {0};
         char *data = msg_buf;
         bool is_new_buf = false;
         remain_bytes = msg_length;
         
-        if(msg_length > MAX_MSG_LEN)
+        if(msg_length > MAX_STACK_SIZE)
         {
-            LOG_WARN("message length exceed MAX_MSG_LEN(%d)", MAX_MSG_LEN);
             data = new char[msg_length];
             is_new_buf = true;
         }
-        else if(msg_length > MAX_MSG_LEN / 2)
-        {
-            LOG_WARN("message length exceed half of MAX_MSG_LEN(%d)", MAX_MSG_LEN);
-        }
-        
+
         while(auto *message_chunk = m_recv_msg_queue.pop())
         {
             uint32 length = message_chunk->length();
@@ -748,26 +758,27 @@ void Connection<Wsock>::parse()
 
         std::unique_ptr<Message<Wsock>> message(new Message<Wsock>(shared_from_this()));
         message->m_raw_data.assign(data, msg_length);
+        message->m_length = msg_length;
         msg_length = 0;
-
+        
         if(is_new_buf)
         {
             delete[] data;
         }
-                
+        
         rapidjson::Document &doc = message->doc();
         doc.Parse(message->m_raw_data.c_str());
                 
         if(doc.HasParseError())
         {
-            LOG_ERROR("websocket parse json failed");
+            LOG_ERROR("websocket parse json failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
             close();
             return;
         }
 
         if(!doc.HasMember("msg_type"))
         {
-            LOG_ERROR("websocket parse msg_type failed");
+            LOG_ERROR("websocket parse msg_type failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
             close();
             return;
         }
@@ -784,7 +795,7 @@ void Connection<Wsock>::parse()
 
         if(!doc.HasMember("msg_cmd"))
         {
-            LOG_ERROR("websocket parse msg_cmd failed");
+            LOG_ERROR("websocket parse msg_cmd failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
             close();
             return;
         }
@@ -931,28 +942,31 @@ void Connection<Proto>::parse()
         m_cur_msg_length = ntohl(m_cur_msg_length);
         
     after_parse_length:
+        if(m_cur_msg_length > m_max_msg_length)
+        {
+            LOG_ERROR("proto message length(%lu) exceed max_msg_length(%u) from %s:%u", m_cur_msg_length, m_max_msg_length, \
+                      m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+            close();
+            return;
+        }
+
         if(m_recv_msg_queue.length() < m_cur_msg_length)
         {
-            break;
+            return;
         }
         
-        const uint32 MAX_MSG_LEN = 102400;
-        char msg_buf[MAX_MSG_LEN] = {0};
+        const uint32 MAX_STACK_SIZE = 512 * 1024;
+        char msg_buf[MAX_STACK_SIZE] = {0};
         char *data = msg_buf;
         bool is_new_buf = false;
         remain_bytes = m_cur_msg_length;
         
-        if(m_cur_msg_length > MAX_MSG_LEN)
+        if(m_cur_msg_length > MAX_STACK_SIZE)
         {
-            LOG_WARN("message length exceed MAX_MSG_LEN(%d)", MAX_MSG_LEN);
             data = new char[m_cur_msg_length];
             is_new_buf = true;
         }
-        else if(m_cur_msg_length > MAX_MSG_LEN / 2)
-        {
-            LOG_WARN("message length exceed half of MAX_MSG_LEN(%d)", MAX_MSG_LEN);
-        }
-        
+
         while(auto *message_chunk = m_recv_msg_queue.pop())
         {
             uint32 length = message_chunk->length();
@@ -979,8 +993,9 @@ void Connection<Proto>::parse()
 
                 std::unique_ptr<Message<Proto>> message(new Message<Proto>(shared_from_this()));
                 message->m_raw_data.assign(data, m_cur_msg_length);
+                message->m_length = m_cur_msg_length;
                 m_cur_msg_length = 0;
-
+                
                 if(is_new_buf)
                 {
                     delete[] data;
@@ -993,30 +1008,34 @@ void Connection<Proto>::parse()
                 {
                     if(!doc.HasMember("msg_type"))
                     {
-                        break;
+                        close();
+                        return;
                     }
                     
                     const rapidjson::Value &msg_type = doc["msg_type"];
 
                     if(!msg_type.IsUint())
                     {
-                        break;
+                        close();
+                        return;
                     }
 
                     message->m_type = msg_type.GetUint();
 
                     if(!doc.HasMember("msg_cmd"))
                     {
-                        break;
+                        close();
+                        return;
                     }
 
                     const rapidjson::Value &msg_cmd = doc["msg_cmd"];
 
                     if(!msg_cmd.IsUint())
                     {
-                        break;
+                        close();
+                        return;
                     }
-
+                    
                     message->m_cmd = msg_cmd.GetUint();
                     m_dispatch_cb(std::move(message));
                 }
