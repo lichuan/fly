@@ -55,7 +55,7 @@ Server<T>::Server(const Addr &addr,
         else
         {
             close(connection->m_fd);
-            LOG_INFO("connection from %s:%d is not allowed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
+            LOG_DEBUG("connection from %s:%d is not allowed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
         }
     }));
 }
@@ -86,7 +86,7 @@ Server<T>::Server(const Addr &addr,
         else
         {
             close(connection->m_fd);
-            LOG_INFO("connection from %s:%d is not allowed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
+            LOG_DEBUG("connection from %s:%d is not allowed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
         }
     }));
 }

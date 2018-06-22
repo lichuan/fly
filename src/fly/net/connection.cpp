@@ -157,7 +157,7 @@ void Connection<Json>::parse()
     after_parse_length:
         if(m_cur_msg_length > m_max_msg_length)
         {
-            LOG_ERROR("json message length(%lu) exceed max_msg_length(%u) from %s:%u", m_cur_msg_length, m_max_msg_length, \
+            LOG_DEBUG("json message length(%lu) exceed max_msg_length(%u) from %s:%u", m_cur_msg_length, m_max_msg_length, \
                       m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
             close();
             return;
@@ -523,25 +523,25 @@ void Connection<Wsock>::parse()
             }
             else if(op_code == 0x08) //close
             {
-                LOG_WARN("recv websocket close protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+                LOG_DEBUG("recv websocket close protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
                 close();
                 return;
             }
             else if(op_code == 0x09) //ping
             {
-                LOG_WARN("recv websocket ping protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+                LOG_DEBUG("recv websocket ping protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
                 close();
                 return; 
             }
             else if(op_code == 0x0a) //pong
             {
-                LOG_WARN("recv websocket pong protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+                LOG_DEBUG("recv websocket pong protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
                 close();
                 return;
             }
             else
             {
-                LOG_WARN("recv websocket other protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+                LOG_DEBUG("recv websocket other protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
                 close();
                 return;
             }
@@ -669,7 +669,7 @@ void Connection<Wsock>::parse()
 
         if(msg_length > m_max_msg_length)
         {
-            LOG_ERROR("wsock message length(%lu) exceed max_msg_length(%u) from %s:%u", msg_length, m_max_msg_length, m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+            LOG_DEBUG("wsock message length(%lu) exceed max_msg_length(%u) from %s:%u", msg_length, m_max_msg_length, m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
             close();
             return;
         }
@@ -771,14 +771,14 @@ void Connection<Wsock>::parse()
                 
         if(doc.HasParseError())
         {
-            LOG_ERROR("websocket parse json failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+            LOG_DEBUG("websocket parse json failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
             close();
             return;
         }
 
         if(!doc.HasMember("msg_type"))
         {
-            LOG_ERROR("websocket parse msg_type failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+            LOG_DEBUG("websocket parse msg_type failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
             close();
             return;
         }
@@ -795,7 +795,7 @@ void Connection<Wsock>::parse()
 
         if(!doc.HasMember("msg_cmd"))
         {
-            LOG_ERROR("websocket parse msg_cmd failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+            LOG_DEBUG("websocket parse msg_cmd failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
             close();
             return;
         }
@@ -944,7 +944,7 @@ void Connection<Proto>::parse()
     after_parse_length:
         if(m_cur_msg_length > m_max_msg_length)
         {
-            LOG_ERROR("proto message length(%lu) exceed max_msg_length(%u) from %s:%u", m_cur_msg_length, m_max_msg_length, \
+            LOG_DEBUG("proto message length(%lu) exceed max_msg_length(%u) from %s:%u", m_cur_msg_length, m_max_msg_length, \
                       m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
             close();
             return;

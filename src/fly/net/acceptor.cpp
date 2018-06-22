@@ -156,7 +156,7 @@ bool Acceptor<T>::start()
             char host[INET_ADDRSTRLEN];
             inet_ntop(AF_INET, &client_addr.sin_addr, host, INET_ADDRSTRLEN);
             uint16 port = ntohs(client_addr.sin_port);
-            LOG_INFO("new connection from %s:%d arrived", host, port);
+            LOG_DEBUG("new connection from %s:%d arrived", host, port);
             m_cb(std::make_shared<Connection<T>>(client_fd, Addr(host, port)));
         }
     });
