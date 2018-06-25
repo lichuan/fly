@@ -334,10 +334,10 @@ void Poller_Task<T>::run_in_loop()
                 {
                     continue;
                 }
-
+                
                 while(true)
                 {
-                    auto REQ_SIZE = 4096;
+                    const uint32 REQ_SIZE = 100 * 1024;
                     Message_Chunk_Queue &recv_queue = connection->m_recv_msg_queue;
                     std::unique_ptr<Message_Chunk> message_chunk(new Message_Chunk(REQ_SIZE));
                     int32 num = read(fd, message_chunk->read_ptr(), REQ_SIZE);
