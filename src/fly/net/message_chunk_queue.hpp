@@ -23,7 +23,7 @@
 #define FLY__NET__MESSAGE_CHUNK_QUEUE
 
 #include <mutex>
-#include <deque>
+#include <list>
 #include "fly/net/message_chunk.hpp"
 
 namespace fly {
@@ -38,7 +38,7 @@ public:
     uint32 length();
     
 private:
-    std::deque<Message_Chunk*> m_queue;
+    std::list<Message_Chunk*> m_queue;
     std::mutex m_mutex;
     uint32 m_length = 0;
 };

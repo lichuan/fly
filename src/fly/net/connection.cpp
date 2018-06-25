@@ -381,7 +381,7 @@ void Connection<Wsock>::parse()
     if(m_handshake_phase)
     {
         std::string req;
-        std::deque<Message_Chunk*> chunks;
+        std::list<Message_Chunk*> chunks;
         fly::base::Scope_CB scope_cb(
             [&chunks, this]
             {
