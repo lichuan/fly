@@ -58,7 +58,7 @@ public:
         T element = m_queue.front();
         m_queue.pop_front();
 
-        if(m_full && m_queue.size() < MAX_SIZE / 4)
+        if(m_full && m_queue.size() <= MAX_SIZE / 4)
         {
             m_full = false;
             m_cond_not_full.notify_one();
