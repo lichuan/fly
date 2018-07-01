@@ -30,7 +30,7 @@
 namespace fly {
 namespace base {
 
-template<typename T, uint32 MAX_SIZE = 1024>
+template<typename T, uint32 MAX_SIZE = 100>
 class Block_Queue
 {
 public:

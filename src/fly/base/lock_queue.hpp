@@ -24,30 +24,43 @@
 
 #include <mutex>
 #include <list>
+#include <condition_variable>
 
 namespace fly {
 namespace base {
 
-template<typename T>
+template<typename T, uint32 MAX_SIZE = 100>
 class Lock_Queue
 {
 public:
     void push(T element)
     {
-        std::lock_guard<std::mutex> guard(m_mutex);
+        std::unique_lock<std::mutex> locker(m_mutex);
         m_queue.push_back(element);
-    }
 
+        if(m_queue.size() >= MAX_SIZE)
+        {
+            m_full = true;
+            m_cond_not_full.wait(locker, [&]{return !m_full;});
+        }
+    }
+    
     bool pop(std::list<T> &queue)
     {
-        std::lock_guard<std::mutex> guard(m_mutex);
+        std::unique_lock<std::mutex> locker(m_mutex);
 
         if(m_queue.empty())
         {
             return false;
         }
-
+        
         queue.swap(m_queue);
+        
+        if(m_full)
+        {
+            m_full = false;
+            m_cond_not_full.notify_one();
+        }
 
         return true;
     }
@@ -55,28 +68,42 @@ public:
 private:
     std::list<T> m_queue;
     std::mutex m_mutex;
+    bool m_full = false;
+    std::condition_variable m_cond_not_full;
 };
 
-template<typename T>
-class Lock_Queue<std::unique_ptr<T>>
+template<typename T, uint32 MAX_SIZE>
+class Lock_Queue<std::unique_ptr<T>, MAX_SIZE>
 {
 public:
     void push(std::unique_ptr<T> element)
     {
-        std::lock_guard<std::mutex> guard(m_mutex);
+        std::unique_lock<std::mutex> locker(m_mutex);
         m_queue.push_back(std::move(element));
+        
+        if(m_queue.size() >= MAX_SIZE)
+        {
+            m_full = true;
+            m_cond_not_full.wait(locker, [&]{return !m_full;});
+        }
     }
     
     bool pop(std::list<std::unique_ptr<T>> &queue)
     {
-        std::lock_guard<std::mutex> guard(m_mutex);
+        std::unique_lock<std::mutex> locker(m_mutex);
 
         if(m_queue.empty())
         {
             return false;
         }
-
+        
         queue.swap(m_queue);
+        
+        if(m_full)
+        {
+            m_full = false;
+            m_cond_not_full.notify_one();
+        }
 
         return true;
     }
@@ -84,6 +111,8 @@ public:
 private:
     std::list<std::unique_ptr<T>> m_queue;
     std::mutex m_mutex;
+    bool m_full = false;
+    std::condition_variable m_cond_not_full;
 };
 
 }
