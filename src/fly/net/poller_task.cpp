@@ -372,7 +372,8 @@ void Poller_Task<T>::run_in_loop()
                 }
             }
         }
-        else if(event & EPOLLOUT)
+
+        if(event & EPOLLOUT)
         {
             if(connection->m_closed.load(std::memory_order_relaxed))
             {
