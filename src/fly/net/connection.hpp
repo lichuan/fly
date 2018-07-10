@@ -58,6 +58,7 @@ public:
     ~Connection();
     uint64 id();
     void close();
+    bool closed();
     void send(const void *data, uint32 size);
     void send(rapidjson::Document &doc);
     const Addr& peer_addr();
@@ -101,6 +102,7 @@ public:
     ~Connection();
     uint64 id();
     void close();
+    bool closed();
     void send(const void *data, uint32 size);
     void send(rapidjson::Document &doc);
     const Addr& peer_addr();
@@ -147,6 +149,7 @@ public:
     ~Connection();
     uint64 id();
     void close();
+    bool closed();
     void send(const void *data, uint32 size);
     void send(rapidjson::Document &doc);
     const Addr& peer_addr();

@@ -102,6 +102,11 @@ void Connection<Json>::close()
     m_poller_task->close_connection(shared_from_this());
 }
 
+bool Connection<Json>::closed()
+{
+    return m_closed.load(std::memory_order_relaxed);
+}
+
 const Addr& Connection<Json>::peer_addr()
 {
     return m_peer_addr;
@@ -157,7 +162,7 @@ void Connection<Json>::parse()
     after_parse_length:
         if(m_cur_msg_length > m_max_msg_length)
         {
-            LOG_DEBUG("json message length(%lu) exceed max_msg_length(%u) from %s:%u", m_cur_msg_length, m_max_msg_length, \
+            LOG_DEBUG_ERROR("json message length(%lu) exceed max_msg_length(%u) from %s:%u", m_cur_msg_length, m_max_msg_length, \
                       m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
             close();
             return;
@@ -371,6 +376,11 @@ void Connection<Wsock>::close()
     m_poller_task->close_connection(shared_from_this());
 }
 
+bool Connection<Wsock>::closed()
+{
+    return m_closed.load(std::memory_order_relaxed);
+}
+
 const Addr& Connection<Wsock>::peer_addr()
 {
     return m_peer_addr;
@@ -523,25 +533,25 @@ void Connection<Wsock>::parse()
             }
             else if(op_code == 0x08) //close
             {
-                LOG_DEBUG("recv websocket close protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+                LOG_DEBUG_INFO("recv websocket close protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
                 close();
                 return;
             }
             else if(op_code == 0x09) //ping
             {
-                LOG_DEBUG("recv websocket ping protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+                LOG_DEBUG_ERROR("recv websocket ping protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
                 close();
                 return; 
             }
             else if(op_code == 0x0a) //pong
             {
-                LOG_DEBUG("recv websocket pong protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+                LOG_DEBUG_ERROR("recv websocket pong protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
                 close();
                 return;
             }
             else
             {
-                LOG_DEBUG("recv websocket other protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+                LOG_DEBUG_ERROR("recv websocket other protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
                 close();
                 return;
             }
@@ -669,7 +679,7 @@ void Connection<Wsock>::parse()
 
         if(msg_length > m_max_msg_length)
         {
-            LOG_DEBUG("wsock message length(%lu) exceed max_msg_length(%u) from %s:%u", msg_length, m_max_msg_length, m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+            LOG_DEBUG_ERROR("wsock message length(%lu) exceed max_msg_length(%u) from %s:%u", msg_length, m_max_msg_length, m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
             close();
             return;
         }
@@ -771,14 +781,14 @@ void Connection<Wsock>::parse()
                 
         if(doc.HasParseError())
         {
-            LOG_DEBUG("websocket parse json failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+            LOG_DEBUG_ERROR("websocket parse json failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
             close();
             return;
         }
 
         if(!doc.HasMember("msg_type"))
         {
-            LOG_DEBUG("websocket parse msg_type failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+            LOG_DEBUG_ERROR("websocket parse msg_type failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
             close();
             return;
         }
@@ -795,7 +805,7 @@ void Connection<Wsock>::parse()
 
         if(!doc.HasMember("msg_cmd"))
         {
-            LOG_DEBUG("websocket parse msg_cmd failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+            LOG_DEBUG_ERROR("websocket parse msg_cmd failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
             close();
             return;
         }
@@ -887,6 +897,11 @@ void Connection<Proto>::close()
     m_poller_task->close_connection(shared_from_this());
 }
 
+bool Connection<Proto>::closed()
+{
+    return m_closed.load(std::memory_order_relaxed);
+}
+
 const Addr& Connection<Proto>::peer_addr()
 {
     return m_peer_addr;
@@ -944,7 +959,7 @@ void Connection<Proto>::parse()
     after_parse_length:
         if(m_cur_msg_length > m_max_msg_length)
         {
-            LOG_DEBUG("proto message length(%lu) exceed max_msg_length(%u) from %s:%u", m_cur_msg_length, m_max_msg_length, \
+            LOG_DEBUG_ERROR("proto message length(%lu) exceed max_msg_length(%u) from %s:%u", m_cur_msg_length, m_max_msg_length, \
                       m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
             close();
             return;
