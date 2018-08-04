@@ -337,7 +337,7 @@ void Poller_Task<T>::run_in_loop()
                 
                 while(true)
                 {
-                    const uint32 REQ_SIZE = 100 * 1024;
+                    const uint32 REQ_SIZE = 2 * 1024 * 1024;
                     Message_Chunk_Queue &recv_queue = connection->m_recv_msg_queue;
                     std::unique_ptr<Message_Chunk> message_chunk(new Message_Chunk(REQ_SIZE));
                     int32 num = read(fd, message_chunk->read_ptr(), REQ_SIZE);
@@ -349,7 +349,7 @@ void Poller_Task<T>::run_in_loop()
                             break;
                         }
                     }
-                
+                    
                     if(num <= 0)
                     {
                         epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
