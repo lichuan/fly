@@ -25,6 +25,7 @@
 #include "fly/net/connection.hpp"
 #include "fly/net/poller_task.hpp"
 #include "fly/base/logger.hpp"
+#include "rapidjson/error/en.h"
 #include <thread>
 
 namespace fly {
@@ -221,42 +222,53 @@ void Connection<Json>::parse()
                 
                 rapidjson::Document &doc = message->doc();
                 doc.Parse(message->m_raw_data.c_str());
-                
-                if(!doc.HasParseError())
+
+                if(doc.HasParseError())
                 {
-                    if(!doc.HasMember("msg_type"))
-                    {
-                        close();
-                        return;
-                    }
-                    
-                    const rapidjson::Value &msg_type = doc["msg_type"];
-
-                    if(!msg_type.IsUint())
-                    {
-                        close();
-                        return;
-                    }
-                    
-                    message->m_type = msg_type.GetUint();
-
-                    if(!doc.HasMember("msg_cmd"))
-                    {
-                        close();
-                        return;
-                    }
-                    
-                    const rapidjson::Value &msg_cmd = doc["msg_cmd"];
-
-                    if(!msg_cmd.IsUint())
-                    {
-                        close();
-                        return;
-                    }
-                    
-                    message->m_cmd = msg_cmd.GetUint();
-                    m_dispatch_cb(std::move(message));
+                    LOG_DEBUG_ERROR("parse json message failed from %s:%u, reason: %s", m_peer_addr.m_host.c_str(), m_peer_addr.m_port, \
+                                    GetParseError_En(doc.GetParseError()));
+                    close();
+                    return;
                 }
+
+                if(!doc.IsObject())
+                {
+                    close();
+                    return;
+                }
+                
+                if(!doc.HasMember("msg_type"))
+                {
+                    close();
+                    return;
+                }
+                    
+                const rapidjson::Value &msg_type = doc["msg_type"];
+
+                if(!msg_type.IsUint())
+                {
+                    close();
+                    return;
+                }
+                    
+                message->m_type = msg_type.GetUint();
+
+                if(!doc.HasMember("msg_cmd"))
+                {
+                    close();
+                    return;
+                }
+                    
+                const rapidjson::Value &msg_cmd = doc["msg_cmd"];
+
+                if(!msg_cmd.IsUint())
+                {
+                    close();
+                    return;
+                }
+                    
+                message->m_cmd = msg_cmd.GetUint();
+                m_dispatch_cb(std::move(message));
                 
                 break;
             }
@@ -781,11 +793,18 @@ void Connection<Wsock>::parse()
                 
         if(doc.HasParseError())
         {
-            LOG_DEBUG_ERROR("websocket parse json failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+            LOG_DEBUG_ERROR("websocket parse json failed from %s:%u, reason: %s", m_peer_addr.m_host.c_str(), m_peer_addr.m_port, \
+                            GetParseError_En(doc.GetParseError()));
             close();
             return;
         }
-
+        
+        if(!doc.IsObject())
+        {
+            close();
+            return;
+        }
+        
         if(!doc.HasMember("msg_type"))
         {
             LOG_DEBUG_ERROR("websocket parse msg_type failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
@@ -1018,43 +1037,54 @@ void Connection<Proto>::parse()
                 
                 rapidjson::Document &doc = message->doc();
                 doc.Parse(message->m_raw_data.c_str());
-                
-                if(!doc.HasParseError())
+
+                if(doc.HasParseError())
                 {
-                    if(!doc.HasMember("msg_type"))
-                    {
-                        close();
-                        return;
-                    }
-                    
-                    const rapidjson::Value &msg_type = doc["msg_type"];
-
-                    if(!msg_type.IsUint())
-                    {
-                        close();
-                        return;
-                    }
-
-                    message->m_type = msg_type.GetUint();
-
-                    if(!doc.HasMember("msg_cmd"))
-                    {
-                        close();
-                        return;
-                    }
-
-                    const rapidjson::Value &msg_cmd = doc["msg_cmd"];
-
-                    if(!msg_cmd.IsUint())
-                    {
-                        close();
-                        return;
-                    }
-                    
-                    message->m_cmd = msg_cmd.GetUint();
-                    m_dispatch_cb(std::move(message));
+                    LOG_DEBUG_ERROR("parse json message failed from %s:%u, reason: %s", m_peer_addr.m_host.c_str(), m_peer_addr.m_port, \
+                                    GetParseError_En(doc.GetParseError()));
+                    close();
+                    return;
                 }
                 
+                if(!doc.IsObject())
+                {
+                    close();
+                    return;
+                }
+
+                if(!doc.HasMember("msg_type"))
+                {
+                    close();
+                    return;
+                }
+                    
+                const rapidjson::Value &msg_type = doc["msg_type"];
+
+                if(!msg_type.IsUint())
+                {
+                    close();
+                    return;
+                }
+
+                message->m_type = msg_type.GetUint();
+
+                if(!doc.HasMember("msg_cmd"))
+                {
+                    close();
+                    return;
+                }
+
+                const rapidjson::Value &msg_cmd = doc["msg_cmd"];
+
+                if(!msg_cmd.IsUint())
+                {
+                    close();
+                    return;
+                }
+                    
+                message->m_cmd = msg_cmd.GetUint();
+                m_dispatch_cb(std::move(message));
+
                 break;
             }
         }
