@@ -55,6 +55,7 @@ class Message<Json>
 public:
     Message(std::shared_ptr<Connection<Json>> connection);
     rapidjson::Document& doc();
+    std::shared_ptr<rapidjson::Document> doc_shared();
     const std::string& raw_data();
     uint32 type();
     uint32 cmd();
@@ -62,7 +63,7 @@ public:
     std::shared_ptr<Connection<Json>> get_connection();
     
 private:
-    rapidjson::Document m_doc;
+    std::shared_ptr<rapidjson::Document> m_doc;
     std::shared_ptr<Connection<Json>> m_connection;
     std::string m_raw_data;
     uint32 m_length;
@@ -78,6 +79,7 @@ class Message<Proto>
 public:
     Message(std::shared_ptr<Connection<Proto>> connection);
     rapidjson::Document& doc();
+    std::shared_ptr<rapidjson::Document> doc_shared();
     const std::string& raw_data();
     uint32 type();
     uint32 cmd();
@@ -85,7 +87,7 @@ public:
     std::shared_ptr<Connection<Proto>> get_connection();
     
 private:
-    rapidjson::Document m_doc;
+    std::shared_ptr<rapidjson::Document> m_doc;
     std::shared_ptr<Connection<Proto>> m_connection;
     std::string m_raw_data;
     uint32 m_length;
@@ -101,6 +103,7 @@ class Message<Wsock>
 public:
     Message(std::shared_ptr<Connection<Wsock>> connection);
     rapidjson::Document& doc();
+    std::shared_ptr<rapidjson::Document> doc_shared();
     const std::string& raw_data();
     uint32 type();
     uint32 cmd();
@@ -108,7 +111,7 @@ public:
     std::shared_ptr<Connection<Wsock>> get_connection();
     
 private:
-    rapidjson::Document m_doc;
+    std::shared_ptr<rapidjson::Document> m_doc;
     std::shared_ptr<Connection<Wsock>> m_connection;
     std::string m_raw_data;
     uint32 m_length;

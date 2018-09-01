@@ -28,9 +28,15 @@ namespace net {
 Message<Json>::Message(std::shared_ptr<Connection<Json>> connection)
 {
     m_connection = connection;
+    m_doc = std::make_shared<rapidjson::Document>();
 }
 
 rapidjson::Document& Message<Json>::doc()
+{
+    return *m_doc;
+}
+
+std::shared_ptr<rapidjson::Document> Message<Json>::doc_shared()
 {
     return m_doc;
 }
@@ -64,9 +70,15 @@ std::shared_ptr<Connection<Json>> Message<Json>::get_connection()
 Message<Proto>::Message(std::shared_ptr<Connection<Proto>> connection)
 {
     m_connection = connection;
+    m_doc = std::make_shared<rapidjson::Document>();
 }
 
 rapidjson::Document& Message<Proto>::doc()
+{
+    return *m_doc;
+}
+
+std::shared_ptr<rapidjson::Document> Message<Proto>::doc_shared()
 {
     return m_doc;
 }
@@ -100,9 +112,15 @@ std::shared_ptr<Connection<Proto>> Message<Proto>::get_connection()
 Message<Wsock>::Message(std::shared_ptr<Connection<Wsock>> connection)
 {
     m_connection = connection;
+    m_doc = std::make_shared<rapidjson::Document>();
 }
 
 rapidjson::Document& Message<Wsock>::doc()
+{
+    return *m_doc;
+}
+
+std::shared_ptr<rapidjson::Document> Message<Wsock>::doc_shared()
 {
     return m_doc;
 }
