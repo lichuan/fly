@@ -30,7 +30,7 @@ using fly::net::Json;
 class Test_Client : public fly::base::Singleton<Test_Client>
 {
 public:
-    void init(std::shared_ptr<fly::net::Connection<Json>> connection)
+    bool init(std::shared_ptr<fly::net::Connection<Json>> connection)
     {
         rapidjson::Document doc;
         doc.SetObject();
@@ -38,6 +38,7 @@ public:
         doc.AddMember("msg_type", 9922, allocator); 
         doc.AddMember("msg_cmd", 2223333, allocator);
         connection->send(doc);
+        return true;
     }
     
     void dispatch(std::unique_ptr<fly::net::Message<Json>> connection)

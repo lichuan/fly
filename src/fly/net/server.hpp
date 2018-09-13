@@ -34,15 +34,13 @@ class Server
 {
 public:
     Server(const Addr &addr,
-           std::function<bool(std::shared_ptr<Connection<T>>)> allow_cb,
-           std::function<void(std::shared_ptr<Connection<T>>)> init_cb,
+           std::function<bool(std::shared_ptr<Connection<T>>)> init_cb,
            std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
            std::shared_ptr<Poller<T>> poller, uint32 max_msg_length = 1024 * 1024 * 1024);
     Server(const Addr &addr,
-           std::function<bool(std::shared_ptr<Connection<T>>)> allow_cb,
-           std::function<void(std::shared_ptr<Connection<T>>)> init_cb,
+           std::function<bool(std::shared_ptr<Connection<T>>)> init_cb,
            std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,

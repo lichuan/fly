@@ -103,7 +103,15 @@ bool Poller_Task<T>::register_connection(std::shared_ptr<Connection<T>> connecti
     event.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET;
     connection->m_poller_task = this;
     connection->m_self = connection;
-    connection->m_init_cb(connection);
+    
+    if(!connection->m_init_cb(connection))
+    {
+        close(connection->m_fd);
+        connection->m_closed.store(true, std::memory_order_relaxed);
+        connection->m_self.reset();
+        return false;
+    }
+    
     int32 ret = epoll_ctl(m_fd, EPOLL_CTL_ADD, connection->m_fd, &event);
 
     if(ret < 0)

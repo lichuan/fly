@@ -33,7 +33,7 @@ class Client
 {
 public:
     Client(const Addr &addr,
-           std::function<void(std::shared_ptr<Connection<T>>)> init_cb,
+           std::function<bool(std::shared_ptr<Connection<T>>)> init_cb,
            std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
            std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
@@ -50,7 +50,7 @@ private:
     std::shared_ptr<Poller<T>> m_poller;
     std::function<void(std::shared_ptr<Connection<T>>)> m_close_cb;
     std::function<void(std::shared_ptr<Connection<T>>)> m_be_closed_cb;
-    std::function<void(std::shared_ptr<Connection<T>>)> m_init_cb;
+    std::function<bool(std::shared_ptr<Connection<T>>)> m_init_cb;
     std::function<void(std::unique_ptr<Message<T>>)> m_dispatch_cb;
 };
 

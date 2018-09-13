@@ -31,8 +31,7 @@ class Connection;
 
 template<typename T>
 Server<T>::Server(const Addr &addr,
-                  std::function<bool(std::shared_ptr<Connection<T>>)> allow_cb,
-                  std::function<void(std::shared_ptr<Connection<T>>)> init_cb,
+                  std::function<bool(std::shared_ptr<Connection<T>>)> init_cb,
                   std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
                   std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
                   std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
@@ -42,28 +41,23 @@ Server<T>::Server(const Addr &addr,
 
     m_acceptor.reset(new Acceptor<T>(addr, [=](std::shared_ptr<Connection<T>> connection)
     {
-        if(allow_cb(connection))
+        connection->m_id = connection->m_id_allocator.new_id();
+        connection->m_max_msg_length = max_msg_length;
+        connection->m_init_cb = init_cb;
+        connection->m_dispatch_cb = dispatch_cb;
+        connection->m_close_cb = close_cb;
+        connection->m_be_closed_cb = be_closed_cb;
+
+        if(!m_poller->register_connection(connection))
         {
-            connection->m_id = connection->m_id_allocator.new_id();
-            connection->m_max_msg_length = max_msg_length;
-            connection->m_init_cb = init_cb;
-            connection->m_dispatch_cb = dispatch_cb;
-            connection->m_close_cb = close_cb;
-            connection->m_be_closed_cb = be_closed_cb;
-            m_poller->register_connection(connection);
-        }
-        else
-        {
-            close(connection->m_fd);
-            LOG_DEBUG_INFO("connection from %s:%d is not allowed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
+            LOG_DEBUG_INFO("register_connection from %s:%d failed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
         }
     }));
 }
 
 template<typename T>
 Server<T>::Server(const Addr &addr,
-                  std::function<bool(std::shared_ptr<Connection<T>>)> allow_cb,
-                  std::function<void(std::shared_ptr<Connection<T>>)> init_cb,
+                  std::function<bool(std::shared_ptr<Connection<T>>)> init_cb,
                   std::function<void(std::unique_ptr<Message<T>>)> dispatch_cb,
                   std::function<void(std::shared_ptr<Connection<T>>)> close_cb,
                   std::function<void(std::shared_ptr<Connection<T>>)> be_closed_cb,
@@ -73,20 +67,16 @@ Server<T>::Server(const Addr &addr,
 
     m_acceptor.reset(new Acceptor<T>(addr, [=](std::shared_ptr<Connection<T>> connection)
     {
-        if(allow_cb(connection))
+        connection->m_id = connection->m_id_allocator.new_id();
+        connection->m_max_msg_length = max_msg_length;
+        connection->m_init_cb = init_cb;
+        connection->m_dispatch_cb = dispatch_cb;
+        connection->m_close_cb = close_cb;
+        connection->m_be_closed_cb = be_closed_cb;
+
+        if(!m_poller->register_connection(connection))
         {
-            connection->m_id = connection->m_id_allocator.new_id();
-            connection->m_max_msg_length = max_msg_length;
-            connection->m_init_cb = init_cb;
-            connection->m_dispatch_cb = dispatch_cb;
-            connection->m_close_cb = close_cb;
-            connection->m_be_closed_cb = be_closed_cb;
-            m_poller->register_connection(connection);
-        }
-        else
-        {
-            close(connection->m_fd);
-            LOG_DEBUG_INFO("connection from %s:%d is not allowed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
+            LOG_DEBUG_INFO("register_connection from %s:%d failed", connection->peer_addr().m_host.c_str(), connection->peer_addr().m_port);
         }
     }));
 }

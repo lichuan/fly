@@ -85,7 +85,7 @@ private:
     static fly::base::ID_Allocator m_id_allocator;
     std::function<void(std::shared_ptr<Connection>)> m_close_cb;
     std::function<void(std::shared_ptr<Connection>)> m_be_closed_cb;
-    std::function<void(std::shared_ptr<Connection>)> m_init_cb;
+    std::function<bool(std::shared_ptr<Connection>)> m_init_cb;
     std::function<void(std::unique_ptr<Message<Json>>)> m_dispatch_cb;
 };
 
@@ -132,7 +132,7 @@ private:
     static fly::base::ID_Allocator m_id_allocator;
     std::function<void(std::shared_ptr<Connection>)> m_close_cb;
     std::function<void(std::shared_ptr<Connection>)> m_be_closed_cb;
-    std::function<void(std::shared_ptr<Connection>)> m_init_cb;
+    std::function<bool(std::shared_ptr<Connection>)> m_init_cb;
     std::function<void(std::unique_ptr<Message<Wsock>>)> m_dispatch_cb;
 };
 
@@ -176,7 +176,7 @@ private:
     static fly::base::ID_Allocator m_id_allocator;
     std::function<void(std::shared_ptr<Connection>)> m_close_cb;
     std::function<void(std::shared_ptr<Connection>)> m_be_closed_cb;
-    std::function<void(std::shared_ptr<Connection>)> m_init_cb;
+    std::function<bool(std::shared_ptr<Connection>)> m_init_cb;
     std::function<void(std::unique_ptr<Message<Proto>>)> m_dispatch_cb;
 };
 

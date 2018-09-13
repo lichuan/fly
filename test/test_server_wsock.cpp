@@ -32,12 +32,7 @@ using fly::net::Wsock;
 class Test_Server : public fly::base::Singleton<Test_Server>
 {
 public:
-    bool allow(std::shared_ptr<fly::net::Connection<Wsock>> connection)
-    {
-        return true;
-    }
-    
-    void init(std::shared_ptr<fly::net::Connection<Wsock>> connection)
+    bool init(std::shared_ptr<fly::net::Connection<Wsock>> connection)
     {
         std::lock_guard<std::mutex> guard(m_mutex);
         m_connections[connection->id()] = connection;
@@ -85,7 +80,6 @@ public:
         
         //test tcp server
         std::unique_ptr<fly::net::Server<Wsock>> server(new fly::net::Server<Wsock>(fly::net::Addr("0.0.0.0", 8088),
-                                                                      std::bind(&Test_Server::allow, this, _1),
                                                                       std::bind(&Test_Server::init, this, _1),
                                                                       std::bind(&Test_Server::dispatch, this, _1),
                                                                       std::bind(&Test_Server::close, this, _1),

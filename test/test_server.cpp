@@ -32,16 +32,12 @@ using fly::net::Json;
 class Test_Server : public fly::base::Singleton<Test_Server>
 {
 public:
-    bool allow(std::shared_ptr<fly::net::Connection<Json>> connection)
-    {
-        return true;
-    }
-    
-    void init(std::shared_ptr<fly::net::Connection<Json>> connection)
+    bool init(std::shared_ptr<fly::net::Connection<Json>> connection)
     {
         std::lock_guard<std::mutex> guard(m_mutex);
         m_connections[connection->id()] = connection;
         CONSOLE_LOG_INFO("connection count: %u", m_connections.size());
+        return true;
     }
     
     void dispatch(std::unique_ptr<fly::net::Message<Json>> message)
@@ -77,7 +73,6 @@ public:
         
         //test tcp server
         std::unique_ptr<fly::net::Server<Json>> server(new fly::net::Server<Json>(fly::net::Addr("127.0.0.1", 8088),
-                                                                      std::bind(&Test_Server::allow, this, _1),
                                                                       std::bind(&Test_Server::init, this, _1),
                                                                       std::bind(&Test_Server::dispatch, this, _1),
                                                                       std::bind(&Test_Server::close, this, _1),
