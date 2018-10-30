@@ -101,7 +101,7 @@ bool Client<T>::connect(int32 timeout)
     int32 ret = getaddrinfo(m_addr.m_host.c_str(), base::to_string(m_addr.m_port).c_str(), &hint, &result);
     if(ret != 0)
     {
-        LOG_FATAL("resolve dns failed in client::connect: %s", gai_strerror(ret));
+        LOG_DEBUG_FATAL("resolve dns failed in client::connect: %s", gai_strerror(ret));
 
         return false;
     }
@@ -110,13 +110,13 @@ bool Client<T>::connect(int32 timeout)
     {
         char ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &((sockaddr_in*)(iter->ai_addr))->sin_addr, ip, INET_ADDRSTRLEN);
-        LOG_INFO("resolve ip success in client::connect host: %s, ip: %s", m_addr.m_host.c_str(), ip);
+        LOG_DEBUG_INFO("resolve ip success in client::connect host: %s, ip: %s", m_addr.m_host.c_str(), ip);
         
         if(::connect(fd, iter->ai_addr, sizeof(sockaddr)) < 0)
         {
             if(errno != EINPROGRESS)
             {        
-                LOG_FATAL("connect failed in Client::connect, host: %s, ip: %s, port: %d %s", m_addr.m_host.c_str(), ip, m_addr.m_port, strerror(errno));
+                LOG_DEBUG_FATAL("connect failed in Client::connect, host: %s, ip: %s, port: %d %s", m_addr.m_host.c_str(), ip, m_addr.m_port, strerror(errno));
                 close(fd);
                 
                 continue;
@@ -137,7 +137,7 @@ bool Client<T>::connect(int32 timeout)
 
             if(ret == 0)
             {
-                LOG_ERROR("connect failed, poll timeout");
+                LOG_DEBUG_ERROR("connect failed, poll timeout");
                 close(fd);
                 
                 continue;
@@ -155,7 +155,7 @@ bool Client<T>::connect(int32 timeout)
 
             if(ret != 0)
             {
-                LOG_ERROR("connect failed, getsockopt error: %s", strerror(ret));
+                LOG_DEBUG_ERROR("connect failed, getsockopt error: %s", strerror(ret));
                 close(fd);
             
                 continue;

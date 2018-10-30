@@ -290,7 +290,7 @@ void Poller_Task<T>::run_in_loop()
     
     if(fd_num < 0)
     {
-        LOG_FATAL("epoll_wait failed in Poller_Task::run_in_loop %s", strerror(errno));
+        LOG_DEBUG_ERROR("epoll_wait failed in Poller_Task::run_in_loop %s", strerror(errno));
 
         return;
     }

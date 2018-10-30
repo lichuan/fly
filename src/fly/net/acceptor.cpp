@@ -143,7 +143,7 @@ bool Acceptor<T>::start()
 
             if(client_fd < 0)
             {
-                LOG_FATAL("accept4 return < 0: %d %s", errno, strerror(errno));
+                LOG_DEBUG_FATAL("accept4 return < 0: %d %s", errno, strerror(errno));
                 
                 if(errno == EMFILE)
                 {
