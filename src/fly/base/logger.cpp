@@ -172,5 +172,13 @@ void Logger::_console_log(uint32 year, uint32 month, uint32 day, const char *for
     va_end(args);
 }
 
+void Logger::_console_only(uint32 year, uint32 month, uint32 day, const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    vfprintf(stdout, format, args);
+    va_end(args);
+}
+
 }
 }
