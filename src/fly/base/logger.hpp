@@ -287,6 +287,7 @@ private:
     }
 
 #define CONSOLE_ONLY(format, ...) \
+    { \
         char _format[256]; \
         struct timeval _tv; \
         gettimeofday(&_tv, NULL); \
@@ -294,6 +295,7 @@ private:
         localtime_r(&_tv.tv_sec, &_tm); \
         sprintf(_format, "%d-%02d-%02d %02d:%02d:%02d.%06ld [utc:%lu] [console] %s:%d %s\n", 1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, \
                 _tm.tm_min, _tm.tm_sec, _tv.tv_usec, _tv.tv_sec, __FILE__, __LINE__, format); \
-        fly::base::Logger::instance()->_console_only(1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _format, ##__VA_ARGS__);
+        fly::base::Logger::instance()->_console_only(1900 + _tm.tm_year, 1 + _tm.tm_mon, _tm.tm_mday, _format, ##__VA_ARGS__); \
+    }
 
 #endif
