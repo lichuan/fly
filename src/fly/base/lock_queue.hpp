@@ -64,7 +64,13 @@ public:
 
         return true;
     }
-    
+
+    void pulse_notify_not_full()
+    {
+        m_full = false;
+        m_cond_not_full.notify_one();
+    }
+
 private:
     std::list<T> m_queue;
     std::mutex m_mutex;
