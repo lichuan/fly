@@ -29,7 +29,7 @@
 namespace fly {
 namespace base {
 
-template<typename T, uint32 MAX_SIZE = 100>
+template<typename T, uint32 MAX_SIZE = 1000>
 class Lock_Queue
 {
 public:
@@ -43,6 +43,12 @@ public:
             m_full = true;
             m_cond_not_full.wait(locker, [&]{return !m_full;});
         }
+    }
+
+    void push_direct(T element)
+    {
+        std::unique_lock<std::mutex> locker(m_mutex);
+        m_queue.push_back(element);
     }
     
     bool pop(std::list<T> &queue)
@@ -92,6 +98,12 @@ public:
             m_full = true;
             m_cond_not_full.wait(locker, [&]{return !m_full;});
         }
+    }
+
+    void push_direct(std::unique_ptr<T> element)
+    {
+        std::unique_lock<std::mutex> locker(m_mutex);
+        m_queue.push_back(std::move(element));
     }
     
     bool pop(std::list<std::unique_ptr<T>> &queue)

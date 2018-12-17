@@ -131,7 +131,7 @@ bool Poller_Task<T>::register_connection(std::shared_ptr<Connection<T>> connecti
 template<typename T>
 void Poller_Task<T>::close_connection(std::shared_ptr<Connection<T>> connection)
 {
-    m_close_queue.push(connection);
+    m_close_queue.push_direct(connection);
     uint64 data = 1;
     int32 num = write(m_close_event_fd, &data, sizeof(uint64));
 
@@ -156,7 +156,7 @@ void Poller_Task<T>::stop()
 template<typename T>
 void Poller_Task<T>::write_connection(std::shared_ptr<Connection<T>> connection)
 {
-    m_write_queue.push(connection);
+    m_write_queue.push_direct(connection);
     uint64 data = 1;
     int32 num = write(m_write_event_fd, &data, sizeof(uint64));
     
