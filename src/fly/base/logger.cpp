@@ -21,6 +21,7 @@
 
 #include <cstdarg>
 #include <unistd.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <thread>
@@ -29,7 +30,7 @@
 namespace fly {
 namespace base {
 
-void Logger::init(LOG_LEVEL level, const std::string &app, const std::string &path)
+bool Logger::init(LOG_LEVEL level, const std::string &app, const std::string &path)
 {
     m_level = level;
     struct timeval tv;
@@ -39,7 +40,12 @@ void Logger::init(LOG_LEVEL level, const std::string &app, const std::string &pa
     m_year.store(1900 + tm.tm_year, std::memory_order_relaxed);
     m_month.store(1 + tm.tm_mon, std::memory_order_relaxed); 
     m_day.store(tm.tm_mday, std::memory_order_relaxed);
-    system((std::string("mkdir -p ") + path).c_str());
+    
+    if(mkpath(path) == -1)
+    {
+        CONSOLE_ONLY("mkdir path: %s failed, reason: %s", path.c_str(), strerror(errno));
+        return false;
+    }
     
     if(path[path.length() - 1] != '/')
     {
@@ -76,6 +82,7 @@ void Logger::init(LOG_LEVEL level, const std::string &app, const std::string &pa
     
     m_file = fopen(m_file_full_name.c_str(), "ab");
     setvbuf(m_file, NULL, _IOLBF, 1024);
+    return true;
 }
 
 void Logger::_log(uint32 year, uint32 month, uint32 day, const char *format, ...)

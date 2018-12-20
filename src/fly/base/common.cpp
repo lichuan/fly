@@ -21,6 +21,7 @@
 
 #include <random>
 #include <netinet/in.h>
+#include <sys/stat.h>
 #include "fly/base/common.hpp"
 #include "cryptopp/base64.h"
 #include "cryptopp/sha.h"
@@ -217,6 +218,35 @@ void split_string(const std::string &str, const char *split, std::vector<std::st
         vec.push_back(token);
         token = strtok_r(NULL, split, save_ptr);
     }
+}
+
+int32 mkpath(std::string s, mode_t mode)
+{
+    size_t pre = 0, pos;
+    std::string dir;
+    int32 mdret;
+
+    if(s[s.size() - 1]!='/'){
+        s += '/';
+    }
+    
+    while((pos = s.find_first_of('/', pre)) != std::string::npos)
+    {
+        dir = s.substr(0, pos++);
+        pre = pos;
+        
+        if(dir.size() == 0)
+        {
+            continue;
+        }
+        
+        if((mdret = ::mkdir(dir.c_str(), mode)) && errno != EEXIST)
+        {
+            return mdret;
+        }
+    }
+    
+    return 0;
 }
 
 uint64 htonll(uint64 n)

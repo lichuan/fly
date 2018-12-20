@@ -45,7 +45,7 @@ enum LOG_LEVEL
 class Logger : public Singleton<Logger>
 {
 public:
-    void init(LOG_LEVEL level, const std::string &app, const std::string &path);
+    bool init(LOG_LEVEL level, const std::string &app, const std::string &path);
     void _log(uint32 year, uint32 month, uint32 day, const char *format, ...);
     void _console_log(uint32 year, uint32 month, uint32 day, const char *format, ...);
     void _console_only(uint32 year, uint32 month, uint32 day, const char *format, ...);
