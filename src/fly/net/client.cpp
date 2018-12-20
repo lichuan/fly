@@ -62,43 +62,14 @@ Client<T>::Client(const Addr &addr)
 template<typename T>
 bool Client<T>::connect(int32 timeout)
 {
-    int32 fd = socket(AF_INET, SOCK_STREAM, 0);
-    
-    if(fd < 0)
-    {
-        LOG_FATAL("socket failed in Client::connect: %s", strerror(errno));
-
-        return false;
-    }
-
-    int32 flags = fcntl(fd, F_GETFL, 0);
-
-    if(flags == -1)
-    {
-        LOG_FATAL("fcntl F_GETFL failed in Client::connect");
-        close(fd);
-        
-        return false;
-    }
-
-    flags |= O_NONBLOCK;
-
-    if(fcntl(fd, F_SETFL, flags) == -1)
-    {
-        LOG_FATAL("fnctl F_SETFL O_NONBLOCK failed in Client::connect");
-        close(fd);
-        
-        return false;
-    }
-
     struct addrinfo hint;
     hint.ai_flags = 0;
     hint.ai_family = AF_INET;
     hint.ai_socktype = SOCK_STREAM;
     hint.ai_protocol = 0;
     struct addrinfo *result, *iter;
-        
     int32 ret = getaddrinfo(m_addr.m_host.c_str(), base::to_string(m_addr.m_port).c_str(), &hint, &result);
+
     if(ret != 0)
     {
         LOG_DEBUG_FATAL("resolve dns failed in client::connect: %s", gai_strerror(ret));
@@ -108,6 +79,35 @@ bool Client<T>::connect(int32 timeout)
     
     for(iter = result; iter != NULL; iter = iter->ai_next)
     {
+        int32 fd = socket(AF_INET, SOCK_STREAM, 0);
+    
+        if(fd < 0)
+        {
+            LOG_FATAL("socket failed in Client::connect: %s", strerror(errno));
+
+            return false;
+        }
+
+        int32 flags = fcntl(fd, F_GETFL, 0);
+
+        if(flags == -1)
+        {
+            LOG_FATAL("fcntl F_GETFL failed in Client::connect");
+            close(fd);
+        
+            return false;
+        }
+
+        flags |= O_NONBLOCK;
+
+        if(fcntl(fd, F_SETFL, flags) == -1)
+        {
+            LOG_FATAL("fnctl F_SETFL O_NONBLOCK failed in Client::connect");
+            close(fd);
+        
+            return false;
+        }
+        
         char ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &((sockaddr_in*)(iter->ai_addr))->sin_addr, ip, INET_ADDRSTRLEN);
         LOG_DEBUG_INFO("resolve ip success in client::connect host: %s, ip: %s", m_addr.m_host.c_str(), ip);
