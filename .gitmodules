@@ -1,6 +1,6 @@
-[submodule "depend/rapidjson"]
-	path = depend/rapidjson
-	url = git@github.com:lichuan/rapidjson.git
 [submodule "depend/cryptopp"]
 	path = depend/cryptopp
-	url = git@github.com:lichuan/cryptopp.git
+	url = https://github.com/lichuan/cryptopp.git
+[submodule "depend/rapidjson"]
+	path = depend/rapidjson
+	url = https://github.com/lichuan/rapidjson.git
