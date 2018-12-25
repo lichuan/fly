@@ -528,12 +528,14 @@ void Connection<Wsock>::parse()
 
             if(fin == 0)
             {
+                LOG_DEBUG_ERROR("recv websocket but fin == 0 from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
                 close();
                 return;
             }
 
             if((buf[0] & 0x70) != 0)
             {
+                LOG_DEBUG_ERROR("recv websocket but (buf[0] & 0x70) != 0 from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
                 close();
                 return;
             }
@@ -568,16 +570,18 @@ void Connection<Wsock>::parse()
                 return;
             }
             
-            if(buf[1] & 0x80 == 0)
+            if((buf[1] & 0x80) == 0)
             {
+                LOG_DEBUG_ERROR("recv websocket but (buf[1] & 0x80) == 0 buf[1]: %u from %s:%u", buf[1], m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
                 close();
                 return;
             }
-        
+            
             m_cur_msg_length = buf[1] & 0x7f;
 
             if(m_cur_msg_length == 0)
             {
+                LOG_DEBUG_ERROR("recv websocket but (buf[1] & 0x7f) == 0 from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
                 close();
                 return;
             }
