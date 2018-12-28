@@ -72,8 +72,8 @@ bool Client<T>::connect(int32 timeout)
 
     if(ret != 0)
     {
-        LOG_DEBUG_FATAL("resolve dns failed in client::connect: %s", gai_strerror(ret));
-
+        LOG_DEBUG_FATAL("resolve dns: %s:%u failed in client::connect: %s", m_addr.m_host.c_str(), m_addr.m_port, gai_strerror(ret));
+        
         return false;
     }
     
