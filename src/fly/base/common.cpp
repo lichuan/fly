@@ -226,7 +226,8 @@ int32 mkpath(std::string s, mode_t mode)
     std::string dir;
     int32 mdret;
 
-    if(s[s.size() - 1]!='/'){
+    if(s[s.size() - 1] != '/')
+    {
         s += '/';
     }
     
