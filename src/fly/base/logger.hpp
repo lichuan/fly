@@ -56,8 +56,6 @@ public:
         {
             return false;
         }
-        
-        m_enter_num.fetch_add(1, std::memory_order_relaxed);
 
         return true;
     }
@@ -70,7 +68,6 @@ private:
     std::atomic<uint32> m_year;
     std::atomic<uint32> m_month;
     std::atomic<uint32> m_day;
-    std::atomic<uint32> m_enter_num {0};
     std::mutex m_mutex;
 };
 

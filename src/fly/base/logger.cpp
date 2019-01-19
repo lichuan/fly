@@ -90,11 +90,6 @@ void Logger::_log(uint32 year, uint32 month, uint32 day, const char *format, ...
     if(year != m_year.load(std::memory_order_relaxed) || month != m_month.load(std::memory_order_relaxed)
        || day != m_day.load(std::memory_order_relaxed))
     {
-        while(m_enter_num.load(std::memory_order_relaxed) > 1)
-        {
-            std::this_thread::yield();
-        };
-        
         std::lock_guard<std::mutex> guard(m_mutex);
         uint32 y = m_year.load(std::memory_order_relaxed);
         uint32 m = m_month.load(std::memory_order_relaxed);
@@ -126,8 +121,6 @@ void Logger::_log(uint32 year, uint32 month, uint32 day, const char *format, ...
         vfprintf(m_file, format, args);
         va_end(args);
     }
-    
-    m_enter_num.fetch_sub(1, std::memory_order_relaxed);
 }
 
 void Logger::_console_log(uint32 year, uint32 month, uint32 day, const char *format, ...)
@@ -135,11 +128,6 @@ void Logger::_console_log(uint32 year, uint32 month, uint32 day, const char *for
     if(year != m_year.load(std::memory_order_relaxed) || month != m_month.load(std::memory_order_relaxed)
        || day != m_day.load(std::memory_order_relaxed))
     {
-        while(m_enter_num.load(std::memory_order_relaxed) > 1)
-        {
-            std::this_thread::yield();
-        };
-        
         std::lock_guard<std::mutex> guard(m_mutex);
         uint32 y = m_year.load(std::memory_order_relaxed);
         uint32 m = m_month.load(std::memory_order_relaxed);
@@ -171,8 +159,7 @@ void Logger::_console_log(uint32 year, uint32 month, uint32 day, const char *for
         vfprintf(m_file, format, args);
         va_end(args);
     }
-    
-    m_enter_num.fetch_sub(1, std::memory_order_relaxed);
+
     va_list args;
     va_start(args, format);
     vfprintf(stdout, format, args);
