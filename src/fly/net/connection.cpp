@@ -541,6 +541,7 @@ void Connection<Wsock>::parse()
             }
         
             uint8 op_code = buf[0] & 0x0f;
+            bool is_ping_packet = false;
 
             if(op_code == 0x01) //text frame
             {
@@ -553,9 +554,16 @@ void Connection<Wsock>::parse()
             }
             else if(op_code == 0x09) //ping
             {
-                LOG_DEBUG_ERROR("recv websocket ping protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
-                close();
-                return; 
+                LOG_DEBUG_INFO("recv websocket ping protocol from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+                char *buf, *p_data;
+                Message_Chunk *message_chunk = new Message_Chunk(2);
+                message_chunk->write_ptr(2);
+                buf = message_chunk->read_ptr();
+                buf[1] = 0;
+                buf[0] = 0x8a;
+                m_send_msg_queue.push(message_chunk);
+                m_poller_task->write_connection(shared_from_this());
+                is_ping_packet = true;
             }
             else if(op_code == 0x0a) //pong
             {
@@ -578,12 +586,15 @@ void Connection<Wsock>::parse()
             }
             
             m_cur_msg_length = buf[1] & 0x7f;
-
+            
             if(m_cur_msg_length == 0)
             {
-                LOG_DEBUG_ERROR("recv websocket but (buf[1] & 0x7f) == 0 from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
-                close();
-                return;
+                if(!is_ping_packet)
+                {
+                    LOG_DEBUG_ERROR("recv websocket but (buf[1] & 0x7f) == 0 from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+                    close();
+                    return;
+                }
             }
         }
         
@@ -736,113 +747,117 @@ void Connection<Wsock>::parse()
                 break;
             }
         }
-        
-        const uint32 MAX_STACK_SIZE = 512 * 1024;
-        char msg_buf[MAX_STACK_SIZE] = {0};
-        char *data = msg_buf;
-        bool is_new_buf = false;
-        remain_bytes = msg_length;
-        
-        if(msg_length > MAX_STACK_SIZE)
-        {
-            data = new char[msg_length];
-            is_new_buf = true;
-        }
 
-        while(auto *message_chunk = m_recv_msg_queue.pop())
+        if(msg_length > 0)
         {
-            uint32 length = message_chunk->length();
-
-            if(length < remain_bytes)
+            const uint32 MAX_STACK_SIZE = 512 * 1024;
+            char msg_buf[MAX_STACK_SIZE] = {0};
+            char *data = msg_buf;
+            bool is_new_buf = false;
+            remain_bytes = msg_length;
+        
+            if(msg_length > MAX_STACK_SIZE)
             {
-                memcpy(data + msg_length - remain_bytes, message_chunk->read_ptr(), length);
-                remain_bytes -= length;
-                delete message_chunk;
+                data = new char[msg_length];
+                is_new_buf = true;
             }
-            else
+            
+            while(auto *message_chunk = m_recv_msg_queue.pop())
             {
-                memcpy(data + msg_length - remain_bytes, message_chunk->read_ptr(), remain_bytes);
+                uint32 length = message_chunk->length();
 
-                if(length == remain_bytes)
+                if(length < remain_bytes)
                 {
+                    memcpy(data + msg_length - remain_bytes, message_chunk->read_ptr(), length);
+                    remain_bytes -= length;
                     delete message_chunk;
                 }
                 else
                 {
-                    message_chunk->read_ptr(remain_bytes);
-                    m_recv_msg_queue.push_front(message_chunk);
+                    memcpy(data + msg_length - remain_bytes, message_chunk->read_ptr(), remain_bytes);
+
+                    if(length == remain_bytes)
+                    {
+                        delete message_chunk;
+                    }
+                    else
+                    {
+                        message_chunk->read_ptr(remain_bytes);
+                        m_recv_msg_queue.push_front(message_chunk);
+                    }
+
+                    break;
                 }
-
-                break;
             }
-        }
+            
+            for(auto i = 0; i < msg_length; ++i)
+            {
+                data[i] = data[i] ^ mask_keys[i % 4];
+            }
 
-        for(auto i = 0; i < msg_length; ++i)
-        {
-            data[i] = data[i] ^ mask_keys[i % 4];
-        }
-
-        std::unique_ptr<Message<Wsock>> message(new Message<Wsock>(shared_from_this()));
-        message->m_raw_data.assign(data, msg_length);
-        message->m_length = msg_length;
-        msg_length = 0;
+            std::unique_ptr<Message<Wsock>> message(new Message<Wsock>(shared_from_this()));
+            message->m_raw_data.assign(data, msg_length);
+            message->m_length = msg_length;
+            msg_length = 0;
         
-        if(is_new_buf)
-        {
-            delete[] data;
-        }
+            if(is_new_buf)
+            {
+                delete[] data;
+            }
         
-        rapidjson::Document &doc = message->doc();
-        doc.Parse(message->m_raw_data.c_str());
+            rapidjson::Document &doc = message->doc();
+            doc.Parse(message->m_raw_data.c_str());
                 
-        if(doc.HasParseError())
-        {
-            LOG_DEBUG_ERROR("websocket parse json failed from %s:%u, reason: %s", m_peer_addr.m_host.c_str(), m_peer_addr.m_port, \
-                            GetParseError_En(doc.GetParseError()));
-            close();
-            return;
-        }
+            if(doc.HasParseError())
+            {
+                LOG_DEBUG_ERROR("websocket parse json failed from %s:%u, reason: %s", m_peer_addr.m_host.c_str(), m_peer_addr.m_port, \
+                                GetParseError_En(doc.GetParseError()));
+                close();
+                return;
+            }
         
-        if(!doc.IsObject())
-        {
-            close();
-            return;
-        }
+            if(!doc.IsObject())
+            {
+                close();
+                return;
+            }
         
-        if(!doc.HasMember("msg_type"))
-        {
-            LOG_DEBUG_ERROR("websocket parse msg_type failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
-            close();
-            return;
-        }
+            if(!doc.HasMember("msg_type"))
+            {
+                LOG_DEBUG_ERROR("websocket parse msg_type failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+                close();
+                return;
+            }
                     
-        const rapidjson::Value &msg_type = doc["msg_type"];
+            const rapidjson::Value &msg_type = doc["msg_type"];
 
-        if(!msg_type.IsUint())
-        {
-            close();
-            return;
-        }
+            if(!msg_type.IsUint())
+            {
+                close();
+                return;
+            }
 
-        message->m_type = msg_type.GetUint();
+            message->m_type = msg_type.GetUint();
 
-        if(!doc.HasMember("msg_cmd"))
-        {
-            LOG_DEBUG_ERROR("websocket parse msg_cmd failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
-            close();
-            return;
+            if(!doc.HasMember("msg_cmd"))
+            {
+                LOG_DEBUG_ERROR("websocket parse msg_cmd failed from %s:%u", m_peer_addr.m_host.c_str(), m_peer_addr.m_port);
+                close();
+                return;
+            }
+        
+            const rapidjson::Value &msg_cmd = doc["msg_cmd"];
+
+            if(!msg_cmd.IsUint())
+            {
+                close();
+                return;
+            }
+        
+            message->m_cmd = msg_cmd.GetUint();
+            m_dispatch_cb(std::move(message));
         }
         
-        const rapidjson::Value &msg_cmd = doc["msg_cmd"];
-
-        if(!msg_cmd.IsUint())
-        {
-            close();
-            return;
-        }
-        
-        message->m_cmd = msg_cmd.GetUint();
-        m_dispatch_cb(std::move(message));
         m_cur_msg_length = 0;
         m_cur_msg_length_1 = 0;
     }
