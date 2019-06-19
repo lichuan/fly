@@ -255,7 +255,7 @@ uint64 htonll(uint64 n)
 #if __BYTE_ORDER == __BIG_ENDIAN
     return n;
 #else
-    return (((uint64)htonl((uint32)n)) << 32) | htonl(n >> 32);
+    return (uint64)htonl((uint32)n) << 32 | htonl(n >> 32);
 #endif
 }
 
@@ -264,7 +264,7 @@ uint64 ntohll(uint64 n)
 #if __BYTE_ORDER == __BIG_ENDIAN
     return n;
 #else
-    return (((uint64)ntohl((uint32)n)) << 32) | ntohl(n >> 32);
+    return (uint64)ntohl((uint32)n) << 32 | ntohl(n >> 32);
 #endif
 }
 
