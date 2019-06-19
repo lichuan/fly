@@ -119,7 +119,7 @@ bool Poller_Task<T>::register_connection(std::shared_ptr<Connection<T>> connecti
         LOG_FATAL("epoll_ctl failed in Poller_Task::register_connection: %s", strerror(errno));
         close(connection->m_fd);
         connection->m_closed.store(true, std::memory_order_relaxed);
-        connection->m_be_closed_cb(connection->shared_from_this());
+        connection->m_be_closed_cb(connection);
         connection->m_self.reset();
         
         return false;
@@ -194,7 +194,13 @@ void Poller_Task<T>::do_write(std::shared_ptr<Connection<T>> connection)
         
         if(num <= 0)
         {
-            epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
+            int ret = epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
+            
+            if(ret < 0)
+            {
+                LOG_FATAL("epoll_ctl EPOLL_CTL_DEL failed in Poller_Task::do_write: %s", strerror(errno));
+            }
+
             close(fd);
             connection->m_self.reset();
             connection->m_closed.store(true, std::memory_order_relaxed);
@@ -360,7 +366,13 @@ void Poller_Task<T>::run_in_loop()
                     
                     if(num <= 0)
                     {
-                        epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
+                        int ret = epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, NULL);
+
+                        if(ret < 0)
+                        {
+                            LOG_FATAL("epoll_ctl EPOLL_CTL_DEL failed in Poller_Task::run_in_loop (EPOLLIN): %s", strerror(errno));
+                        }
+
                         close(fd);
                         connection->m_closed.store(true, std::memory_order_relaxed);
                         connection->m_be_closed_cb(connection->shared_from_this());
