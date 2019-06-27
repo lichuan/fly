@@ -27,15 +27,17 @@ namespace net {
 template<typename T>
 Poller<T>::Poller(uint32 num)
 {
-    m_scheduler.reset(new fly::task::Scheduler(num));
-    m_poller_task_num = num;
-    
+    m_poller_executor_num = num;
+    std::vector<fly::task::Executor*> executors;
+
     for(uint32 i = 1; i <= num; ++i)
     {
-        auto *poller_task = new Poller_Task<T>(i);
-        m_poller_tasks.push_back(poller_task);
-        m_scheduler->schedule_task(poller_task);
+        auto *poller_executor = new Poller_Executor<T>();
+        m_poller_executors.push_back(poller_executor);
+        executors.push_back(poller_executor);
     }
+    
+    m_scheduler.reset(new fly::task::Scheduler(executors));
 }
 
 template<typename T>
@@ -47,11 +49,6 @@ void Poller<T>::start()
 template<typename T>
 void Poller<T>::stop()
 {
-    for(auto poll_task : m_poller_tasks)
-    {
-        poll_task->stop();
-    }
-
     m_scheduler->stop();
 }
 
@@ -64,7 +61,7 @@ void Poller<T>::wait()
 template<typename T>
 bool Poller<T>::register_connection(std::shared_ptr<Connection<T>> connection)
 {
-    return m_poller_tasks[connection->id() % m_poller_task_num]->register_connection(connection);
+    return m_poller_executors[connection->id() % m_poller_executor_num]->register_connection(connection);
 }
 
 template class Poller<Json>;

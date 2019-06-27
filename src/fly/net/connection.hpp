@@ -31,7 +31,7 @@ namespace fly {
 namespace net {
 
 template<typename T>
-class Poller_Task;
+class Poller_Executor;
 
 template<typename T>
 class Client;
@@ -49,7 +49,7 @@ class Connection {};
 template<>
 class Connection<Json> : public std::enable_shared_from_this<Connection<Json>>
 {
-    friend class Poller_Task<Json>;
+    friend class Poller_Executor<Json>;
     friend class Server<Json>;
     friend class Client<Json>;
     
@@ -81,7 +81,7 @@ private:
     std::shared_ptr<Connection> m_self; //add ref
     Message_Chunk_Queue m_recv_msg_queue;
     Message_Chunk_Queue m_send_msg_queue;
-    Poller_Task<Json> *m_poller_task = nullptr;
+    Poller_Executor<Json> *m_poller_executor = nullptr;
     static fly::base::ID_Allocator m_id_allocator;
     std::function<void(std::shared_ptr<Connection>)> m_close_cb;
     std::function<void(std::shared_ptr<Connection>)> m_be_closed_cb;
@@ -93,7 +93,7 @@ private:
 template<>
 class Connection<Wsock> : public std::enable_shared_from_this<Connection<Wsock>>
 {
-    friend class Poller_Task<Wsock>;
+    friend class Poller_Executor<Wsock>;
     friend class Server<Wsock>;
     friend class Client<Wsock>;
     
@@ -128,7 +128,7 @@ private:
     std::shared_ptr<Connection> m_self; //add ref
     Message_Chunk_Queue m_recv_msg_queue;
     Message_Chunk_Queue m_send_msg_queue;
-    Poller_Task<Wsock> *m_poller_task = nullptr;
+    Poller_Executor<Wsock> *m_poller_executor = nullptr;
     static fly::base::ID_Allocator m_id_allocator;
     std::function<void(std::shared_ptr<Connection>)> m_close_cb;
     std::function<void(std::shared_ptr<Connection>)> m_be_closed_cb;
@@ -140,7 +140,7 @@ private:
 template<>
 class Connection<Proto> : public std::enable_shared_from_this<Connection<Proto>>
 {
-    friend class Poller_Task<Proto>;
+    friend class Poller_Executor<Proto>;
     friend class Server<Proto>;
     friend class Client<Proto>;
     
@@ -172,7 +172,7 @@ private:
     std::shared_ptr<Connection> m_self; //add ref
     Message_Chunk_Queue m_recv_msg_queue;
     Message_Chunk_Queue m_send_msg_queue;
-    Poller_Task<Proto> *m_poller_task = nullptr;
+    Poller_Executor<Proto> *m_poller_executor = nullptr;
     static fly::base::ID_Allocator m_id_allocator;
     std::function<void(std::shared_ptr<Connection>)> m_close_cb;
     std::function<void(std::shared_ptr<Connection>)> m_be_closed_cb;

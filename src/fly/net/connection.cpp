@@ -23,7 +23,7 @@
 #include <cstring>
 #include <netinet/in.h>
 #include "fly/net/connection.hpp"
-#include "fly/net/poller_task.hpp"
+#include "fly/net/poller_executor.hpp"
 #include "fly/base/logger.hpp"
 #include "rapidjson/error/en.h"
 #include <thread>
@@ -95,12 +95,12 @@ void Connection<Json>::send(const void *data, uint32 size)
     memcpy(message_chunk->read_ptr() + sizeof(uint32), data, size);
     message_chunk->write_ptr(size + sizeof(uint32));
     m_send_msg_queue.push(message_chunk);
-    m_poller_task->write_connection(shared_from_this());
+    m_poller_executor->write_connection(shared_from_this());
 }
 
 void Connection<Json>::close()
 {
-    m_poller_task->close_connection(shared_from_this());
+    m_poller_executor->close_connection(shared_from_this());
 }
 
 bool Connection<Json>::closed()
@@ -338,7 +338,7 @@ void Connection<Wsock>::send_raw(const void *data, uint32 size)
     memcpy(message_chunk->read_ptr(), data, size);
     message_chunk->write_ptr(size);
     m_send_msg_queue.push(message_chunk);
-    m_poller_task->write_connection(shared_from_this());
+    m_poller_executor->write_connection(shared_from_this());
 }
 
 void Connection<Wsock>::send(const void *data, uint32 size)
@@ -379,13 +379,13 @@ void Connection<Wsock>::send(const void *data, uint32 size)
     buf[0] = 0x81;
     memcpy(p_data, data, size);
     m_send_msg_queue.push(message_chunk);
-    m_poller_task->write_connection(shared_from_this());
+    m_poller_executor->write_connection(shared_from_this());
 }
 
 void Connection<Wsock>::close()
 {
     //base::crash_me();
-    m_poller_task->close_connection(shared_from_this());
+    m_poller_executor->close_connection(shared_from_this());
 }
 
 bool Connection<Wsock>::closed()
@@ -562,7 +562,7 @@ void Connection<Wsock>::parse()
                 buf[1] = 0;
                 buf[0] = 0x8a;
                 m_send_msg_queue.push(message_chunk);
-                m_poller_task->write_connection(shared_from_this());
+                m_poller_executor->write_connection(shared_from_this());
                 is_ping_packet = true;
             }
             else if(op_code == 0x0a) //pong
@@ -927,12 +927,12 @@ void Connection<Proto>::send(const void *data, uint32 size)
     memcpy(message_chunk->read_ptr() + sizeof(uint32), data, size);
     message_chunk->write_ptr(size + sizeof(uint32));
     m_send_msg_queue.push(message_chunk);
-    m_poller_task->write_connection(shared_from_this());
+    m_poller_executor->write_connection(shared_from_this());
 }
 
 void Connection<Proto>::close()
 {
-    m_poller_task->close_connection(shared_from_this());
+    m_poller_executor->close_connection(shared_from_this());
 }
 
 bool Connection<Proto>::closed()

@@ -24,10 +24,6 @@
 namespace fly {
 namespace task {
 
-Executor::Executor()
-{
-}
-
 void Executor::run()
 {
     while(auto *task = m_tasks.pop())
@@ -52,6 +48,13 @@ void Executor::start()
 {
     std::thread tmp(std::bind(&Executor::run, this));
     m_thread = std::move(tmp);
+}
+
+void Executor::stop()
+{
+    auto task = new Task(0);
+    task->m_stop_executor = true;
+    add_task(task);
 }
 
 void Executor::wait()

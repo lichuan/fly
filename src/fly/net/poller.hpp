@@ -24,7 +24,7 @@
 
 #include <vector>
 #include "fly/task/scheduler.hpp"
-#include "fly/net/poller_task.hpp"
+#include "fly/net/poller_executor.hpp"
 
 namespace fly {
 namespace net {
@@ -41,8 +41,8 @@ public:
     
 private:
     std::unique_ptr<fly::task::Scheduler> m_scheduler;
-    std::vector<Poller_Task<T>*> m_poller_tasks;
-    uint32 m_poller_task_num = 0;
+    std::vector<Poller_Executor<T>*> m_poller_executors;
+    uint32 m_poller_executor_num = 0;
 };
 
 }

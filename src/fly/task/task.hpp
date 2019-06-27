@@ -30,7 +30,6 @@ namespace task {
 class Task
 {
     friend class Executor;
-    friend class Scheduler;
     
 public:
     Task(uint64 seq);

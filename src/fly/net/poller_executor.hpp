@@ -15,31 +15,47 @@
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-24 20:35:12                                        *
+ *   @date: 2015-06-24 20:31:38                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "fly/task/loop_task.hpp"
+#ifndef FLY__NET__POLLER_EXECUTOR
+#define FLY__NET__POLLER_EXECUTOR
+
+#include "fly/task/loop_executor.hpp"
+#include "fly/net/connection.hpp"
+#include "fly/base/lock_queue.hpp"
 
 namespace fly {
-namespace task {
+namespace net {
 
-Loop_Task::Loop_Task(uint64 seq) : Task(seq)
+template<typename T>
+class Poller_Executor : public fly::task::Loop_Executor
 {
+public:
+    Poller_Executor();
+    bool register_connection(std::shared_ptr<Connection<T>> connection);
+    virtual void run_in_loop() override;
+    void close_connection(std::shared_ptr<Connection<T>> connection);
+    void write_connection(std::shared_ptr<Connection<T>> connection);
+    void stop();
+    
+private:
+    void do_close();
+    void do_write();
+    void do_write(std::shared_ptr<Connection<T>> connection);
+    int32 m_fd;
+    int32 m_close_event_fd;
+    int32 m_write_event_fd;
+    int32 m_stop_event_fd;
+    std::unique_ptr<Connection<T>> m_close_udata;
+    std::unique_ptr<Connection<T>> m_write_udata;
+    std::unique_ptr<Connection<T>> m_stop_udata;
+    fly::base::Lock_Queue<std::shared_ptr<Connection<T>>> m_close_queue;
+    fly::base::Lock_Queue<std::shared_ptr<Connection<T>>> m_write_queue;
+};
+
+}
 }
 
-void Loop_Task::run()
-{
-    while(m_running.load(std::memory_order_relaxed))
-    {
-        run_in_loop();
-    }
-}
-
-void Loop_Task::stop()
-{
-    m_running.store(false, std::memory_order_relaxed);
-}
-
-}
-}
+#endif

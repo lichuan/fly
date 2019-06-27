@@ -32,6 +32,7 @@ class Scheduler
 {
 public:
     Scheduler(uint32 num);
+    Scheduler(std::vector<Executor*> executors);
     void schedule_task(Task *task);
     void start();
     void stop();

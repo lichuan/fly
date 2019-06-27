@@ -34,6 +34,16 @@ Scheduler::Scheduler(uint32 num)
     m_executor_num = num;
 }
 
+Scheduler::Scheduler(std::vector<Executor*> executors)
+{
+    for(auto executor : executors)
+    {
+        m_executors.push_back(executor);
+    }
+
+    m_executor_num = executors.size();
+}
+
 void Scheduler::start()
 {
     for(auto *executor : m_executors)
@@ -46,9 +56,7 @@ void Scheduler::stop()
 {
     for(auto *executor : m_executors)
     {
-        auto task = new Task(0);
-        task->m_stop_executor = true;
-        executor->add_task(task);
+        executor->stop();
     }
 }
 

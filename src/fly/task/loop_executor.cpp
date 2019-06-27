@@ -5,7 +5,7 @@
  *                   | (__      | |      \ (_) /                       *
  *                   |  __)     | |       \   /                        *
  *                   | (        | |        ) (                         *
- *                   | )        | (____/\  | |                         *
+ *                   | )        | (____/\  | |                         *        
  *                   |/         (_______/  \_/                         *
  *                                                                     *
  *                                                                     *
@@ -15,31 +15,27 @@
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
  *   @github: https://github.com/lichuan/fly                           *
- *   @date: 2015-06-24 20:33:14                                        *
+ *   @date: 2019-06-27 15:00:12                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef FLY__TASK__LOOP_TASK
-#define FLY__TASK__LOOP_TASK
-
-#include "fly/task/task.hpp"
+#include "fly/task/loop_executor.hpp"
 
 namespace fly {
 namespace task {
 
-class Loop_Task : public Task
+void Loop_Executor::run()
 {
-public:
-    Loop_Task(uint64 seq);
-    virtual void run() override;
-    virtual void run_in_loop() = 0;
-    void stop();
-    
-private:
-    std::atomic<bool> m_running {true};
-};
+    while(m_running.load(std::memory_order_relaxed))
+    {
+        run_in_loop();
+    }
+}
+
+void Loop_Executor::stop()
+{
+    m_running.store(false, std::memory_order_relaxed);
+}
 
 }
 }
-
-#endif

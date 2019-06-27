@@ -33,10 +33,12 @@ namespace task {
 class Executor
 {
 public:
-    Executor();
-    void run();
+    Executor() {};
+    virtual ~Executor() {};
+    virtual void run();
     void start();
     void wait();
+    virtual void stop();
     void add_task(Task *task);
     
 private:

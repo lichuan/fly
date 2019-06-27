@@ -23,19 +23,19 @@
 #include <sys/eventfd.h>
 #include <unistd.h>
 #include "fly/base/logger.hpp"
-#include "fly/net/poller_task.hpp"
+#include "fly/net/poller_executor.hpp"
 
 namespace fly {
 namespace net {
 
 template<typename T>
-Poller_Task<T>::Poller_Task(uint64 seq) : Loop_Task(seq)
+Poller_Executor<T>::Poller_Executor()
 {
     m_fd = epoll_create1(0);
     
     if(m_fd < 0)
     {
-        LOG_FATAL("epoll_create1 failed in Poller_Task::Poller_Task %s", strerror(errno));
+        LOG_FATAL("epoll_create1 failed in Poller_Executor::Poller_Executor %s", strerror(errno));
         return;
     }
     
@@ -43,7 +43,7 @@ Poller_Task<T>::Poller_Task(uint64 seq) : Loop_Task(seq)
     
     if(m_close_event_fd < 0)
     {
-        LOG_FATAL("close event eventfd failed in Poller_Task::Poller_Task");
+        LOG_FATAL("close event eventfd failed in Poller_Executor::Poller_Executor");
         return; 
     }
 
@@ -51,7 +51,7 @@ Poller_Task<T>::Poller_Task(uint64 seq) : Loop_Task(seq)
 
     if(m_write_event_fd < 0)
     {
-        LOG_FATAL("write event eventfd failed in Poller_Task::Poller_Task");
+        LOG_FATAL("write event eventfd failed in Poller_Executor::Poller_Executor");
         return; 
     }
 
@@ -59,7 +59,7 @@ Poller_Task<T>::Poller_Task(uint64 seq) : Loop_Task(seq)
 
     if(m_stop_event_fd < 0)
     {
-        LOG_FATAL("stop event eventfd failed in Poller_Task::Poller_Task");
+        LOG_FATAL("stop event eventfd failed in Poller_Executor::Poller_Executor");
         return; 
     }
 
@@ -71,7 +71,7 @@ Poller_Task<T>::Poller_Task(uint64 seq) : Loop_Task(seq)
     
     if(ret < 0)
     {
-        LOG_FATAL("close event epoll_ctl failed in Poller_Task::Poller_Task");
+        LOG_FATAL("close event epoll_ctl failed in Poller_Executor::Poller_Executor");
         return; 
     }
 
@@ -81,7 +81,7 @@ Poller_Task<T>::Poller_Task(uint64 seq) : Loop_Task(seq)
     
     if(ret < 0)
     {
-        LOG_FATAL("write event epoll_ctl failed in Poller_Task::Poller_Task");
+        LOG_FATAL("write event epoll_ctl failed in Poller_Executor::Poller_Executor");
         return; 
     }
     
@@ -91,17 +91,17 @@ Poller_Task<T>::Poller_Task(uint64 seq) : Loop_Task(seq)
     
     if(ret < 0)
     {
-        LOG_FATAL("stop event epoll_ctl failed in Poller_Task::Poller_Task");
+        LOG_FATAL("stop event epoll_ctl failed in Poller_Executor::Poller_Executor");
     }
 }
 
 template<typename T>
-bool Poller_Task<T>::register_connection(std::shared_ptr<Connection<T>> connection)
+bool Poller_Executor<T>::register_connection(std::shared_ptr<Connection<T>> connection)
 {
     struct epoll_event event;
     event.data.ptr = connection.get();
     event.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET;
-    connection->m_poller_task = this;
+    connection->m_poller_executor = this;
     connection->m_self = connection;
     
     if(!connection->m_init_cb(connection))
@@ -116,7 +116,7 @@ bool Poller_Task<T>::register_connection(std::shared_ptr<Connection<T>> connecti
 
     if(ret < 0)
     {
-        LOG_FATAL("epoll_ctl failed in Poller_Task::register_connection: %s", strerror(errno));
+        LOG_FATAL("epoll_ctl failed in Poller_Executor::register_connection: %s", strerror(errno));
         close(connection->m_fd);
         connection->m_closed.store(true, std::memory_order_relaxed);
         connection->m_be_closed_cb(connection);
@@ -129,7 +129,7 @@ bool Poller_Task<T>::register_connection(std::shared_ptr<Connection<T>> connecti
 }
 
 template<typename T>
-void Poller_Task<T>::close_connection(std::shared_ptr<Connection<T>> connection)
+void Poller_Executor<T>::close_connection(std::shared_ptr<Connection<T>> connection)
 {
     m_close_queue.push_direct(connection);
     uint64 data = 1;
@@ -137,24 +137,24 @@ void Poller_Task<T>::close_connection(std::shared_ptr<Connection<T>> connection)
 
     if(num != sizeof(uint64))
     {
-        LOG_FATAL("write m_close_event_fd failed in Poller_Task::close_connection");
+        LOG_FATAL("write m_close_event_fd failed in Poller_Executor::close_connection");
     }
 }
 
 template<typename T>
-void Poller_Task<T>::stop()
+void Poller_Executor<T>::stop()
 {
     uint64 data = 1;
     int32 num = write(m_stop_event_fd, &data, sizeof(uint64));
     
     if(num != sizeof(uint64))
     {
-        LOG_FATAL("write m_stop_event_fd failed in Poller_Task::stop");
+        LOG_FATAL("write m_stop_event_fd failed in Poller_Executor::stop");
     }
 }
 
 template<typename T>
-void Poller_Task<T>::write_connection(std::shared_ptr<Connection<T>> connection)
+void Poller_Executor<T>::write_connection(std::shared_ptr<Connection<T>> connection)
 {
     m_write_queue.push_direct(connection);
     uint64 data = 1;
@@ -162,12 +162,12 @@ void Poller_Task<T>::write_connection(std::shared_ptr<Connection<T>> connection)
     
     if(num != sizeof(uint64))
     {
-        LOG_FATAL("write m_write_event_fd failed in Poller_Task::write_connection");
+        LOG_FATAL("write m_write_event_fd failed in Poller_Executor::write_connection");
     }
 }
 
 template<typename T>
-void Poller_Task<T>::do_write(std::shared_ptr<Connection<T>> connection)
+void Poller_Executor<T>::do_write(std::shared_ptr<Connection<T>> connection)
 {
     int32 fd = connection->m_fd;
     Message_Chunk_Queue &send_queue = connection->m_send_msg_queue;
@@ -189,7 +189,7 @@ void Poller_Task<T>::do_write(std::shared_ptr<Connection<T>> connection)
 
         if(num == 0)
         {
-            LOG_FATAL("write return 0, it's impossible, in Poller_Task::do_write(arg)");
+            LOG_FATAL("write return 0, it's impossible, in Poller_Executor::do_write(arg)");
         }
         
         if(num <= 0)
@@ -198,7 +198,7 @@ void Poller_Task<T>::do_write(std::shared_ptr<Connection<T>> connection)
             
             if(ret < 0)
             {
-                LOG_FATAL("epoll_ctl EPOLL_CTL_DEL failed in Poller_Task::do_write: %s", strerror(errno));
+                LOG_FATAL("epoll_ctl EPOLL_CTL_DEL failed in Poller_Executor::do_write: %s", strerror(errno));
             }
 
             close(fd);
@@ -224,14 +224,14 @@ void Poller_Task<T>::do_write(std::shared_ptr<Connection<T>> connection)
 }
 
 template<typename T>
-void Poller_Task<T>::do_write()
+void Poller_Executor<T>::do_write()
 {
     uint64 data = 0;
     int32 num = read(m_write_event_fd, &data, sizeof(uint64));
 
     if(num != sizeof(uint64))
     {
-        LOG_FATAL("read m_write_event_fd failed in Poller_Task::do_write");
+        LOG_FATAL("read m_write_event_fd failed in Poller_Executor::do_write");
         
         return;
     }
@@ -251,14 +251,14 @@ void Poller_Task<T>::do_write()
 }
 
 template<typename T>
-void Poller_Task<T>::do_close()
+void Poller_Executor<T>::do_close()
 {
     uint64 data = 0;
     int32 num = read(m_close_event_fd, &data, sizeof(uint64));
     
     if(num != sizeof(uint64))
     {
-        LOG_FATAL("read m_close_event_fd failed in Poller_Task::do_close");
+        LOG_FATAL("read m_close_event_fd failed in Poller_Executor::do_close");
         
         return;
     }
@@ -276,7 +276,7 @@ void Poller_Task<T>::do_close()
 
                 if(ret < 0)
                 {
-                    LOG_FATAL("epoll_ctl EPOLL_CTL_DEL failed in Poller_Task::do_close: %s", strerror(errno));
+                    LOG_FATAL("epoll_ctl EPOLL_CTL_DEL failed in Poller_Executor::do_close: %s", strerror(errno));
                 }
                 
                 close(fd);
@@ -289,14 +289,14 @@ void Poller_Task<T>::do_close()
 }
 
 template<typename T>
-void Poller_Task<T>::run_in_loop()
+void Poller_Executor<T>::run_in_loop()
 {
     struct epoll_event events[2048];
     int32 fd_num = epoll_wait(m_fd, events, 2048, -1);
     
     if(fd_num < 0)
     {
-        LOG_DEBUG_ERROR("epoll_wait failed in Poller_Task::run_in_loop %s", strerror(errno));
+        LOG_DEBUG_ERROR("epoll_wait failed in Poller_Executor::run_in_loop %s", strerror(errno));
 
         return;
     }
@@ -318,7 +318,7 @@ void Poller_Task<T>::run_in_loop()
 
             if(ret < 0)
             {
-                LOG_FATAL("epoll_ctl EPOLL_CTL_DEL failed in Poller_Task::run_in_loop: %s", strerror(errno));
+                LOG_FATAL("epoll_ctl EPOLL_CTL_DEL failed in Poller_Executor::run_in_loop: %s", strerror(errno));
             }
 
             close(fd);
@@ -338,7 +338,7 @@ void Poller_Task<T>::run_in_loop()
             }
             else if(fd == m_stop_event_fd)
             {
-                Loop_Task::stop();
+                stop();
                 close(m_fd);
                 break;
             }
@@ -370,7 +370,7 @@ void Poller_Task<T>::run_in_loop()
 
                         if(ret < 0)
                         {
-                            LOG_FATAL("epoll_ctl EPOLL_CTL_DEL failed in Poller_Task::run_in_loop (EPOLLIN): %s", strerror(errno));
+                            LOG_FATAL("epoll_ctl EPOLL_CTL_DEL failed in Poller_Executor::run_in_loop (EPOLLIN): %s", strerror(errno));
                         }
 
                         close(fd);
@@ -405,9 +405,9 @@ void Poller_Task<T>::run_in_loop()
     }
 }
 
-template class Poller_Task<Json>;
-template class Poller_Task<Wsock>;
-template class Poller_Task<Proto>;
+template class Poller_Executor<Json>;
+template class Poller_Executor<Wsock>;
+template class Poller_Executor<Proto>;
     
 }
 }
