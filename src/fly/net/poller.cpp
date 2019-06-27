@@ -66,7 +66,6 @@ bool Poller<T>::register_connection(std::shared_ptr<Connection<T>> connection)
 
 template class Poller<Json>;
 template class Poller<Wsock>;
-template class Poller<Proto>;
 
 }
 }

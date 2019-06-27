@@ -66,48 +66,6 @@ std::shared_ptr<Connection<Json>> Message<Json>::get_connection()
     return m_connection;
 }
 
-//Proto
-Message<Proto>::Message(std::shared_ptr<Connection<Proto>> connection)
-{
-    m_connection = connection;
-    m_doc = std::make_shared<rapidjson::Document>();
-}
-
-rapidjson::Document& Message<Proto>::doc()
-{
-    return *m_doc;
-}
-
-std::shared_ptr<rapidjson::Document> Message<Proto>::doc_shared()
-{
-    return m_doc;
-}
-
-uint32 Message<Proto>::type()
-{
-    return m_type;
-}
-
-uint32 Message<Proto>::cmd()
-{
-    return m_cmd;
-}
-
-uint32 Message<Proto>::length()
-{
-    return m_length;
-}
-
-const std::string& Message<Proto>::raw_data()
-{
-    return m_raw_data;
-}
-
-std::shared_ptr<Connection<Proto>> Message<Proto>::get_connection()
-{
-    return m_connection;
-}
-
 //Wsock
 Message<Wsock>::Message(std::shared_ptr<Connection<Wsock>> connection)
 {

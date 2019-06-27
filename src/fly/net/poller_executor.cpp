@@ -407,7 +407,6 @@ void Poller_Executor<T>::run_in_loop()
 
 template class Poller_Executor<Json>;
 template class Poller_Executor<Wsock>;
-template class Poller_Executor<Proto>;
-    
+
 }
 }

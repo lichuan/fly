@@ -116,7 +116,6 @@ void Server<T>::wait()
 
 template class Server<Json>;
 template class Server<Wsock>;
-template class Server<Proto>;
 
 }
 }

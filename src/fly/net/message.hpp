@@ -38,9 +38,6 @@ class Wsock {};
 //json
 class Json {};
 
-//google protobuf
-class Proto {};
-
 template<typename T>
 class Connection;
 
@@ -65,30 +62,6 @@ public:
 private:
     std::shared_ptr<rapidjson::Document> m_doc;
     std::shared_ptr<Connection<Json>> m_connection;
-    std::string m_raw_data;
-    uint32 m_length;
-    uint32 m_type;
-    uint32 m_cmd;
-};
-
-template<>
-class Message<Proto>
-{
-    friend class Connection<Proto>;
-    
-public:
-    Message(std::shared_ptr<Connection<Proto>> connection);
-    rapidjson::Document& doc();
-    std::shared_ptr<rapidjson::Document> doc_shared();
-    const std::string& raw_data();
-    uint32 type();
-    uint32 cmd();
-    uint32 length();
-    std::shared_ptr<Connection<Proto>> get_connection();
-    
-private:
-    std::shared_ptr<rapidjson::Document> m_doc;
-    std::shared_ptr<Connection<Proto>> m_connection;
     std::string m_raw_data;
     uint32 m_length;
     uint32 m_type;

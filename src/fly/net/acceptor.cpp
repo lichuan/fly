@@ -180,7 +180,6 @@ void Acceptor<T>::wait()
 
 template class Acceptor<Json>;
 template class Acceptor<Wsock>;
-template class Acceptor<Proto>;
 
 }
 }
