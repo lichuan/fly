@@ -38,7 +38,7 @@ public:
     virtual void run_in_loop() override;
     void close_connection(std::shared_ptr<Connection<T>> connection);
     void write_connection(std::shared_ptr<Connection<T>> connection);
-    void stop();
+    void stop() override;
     
 private:
     void do_close();

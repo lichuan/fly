@@ -338,8 +338,8 @@ void Poller_Executor<T>::run_in_loop()
             }
             else if(fd == m_stop_event_fd)
             {
-                stop();
                 close(m_fd);
+                fly::task::Loop_Executor::stop();
                 break;
             }
             else
